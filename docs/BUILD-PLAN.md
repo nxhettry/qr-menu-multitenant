@@ -2,7 +2,7 @@
 
 Prepared 16 October 2026 from **QR Menu SaaS for Nepali Restaurants — Revised Build Plan**, dated 15 October 2026 (11 pages), adapted to the stack requested in chat.
 
-Progress: Phase 0 is complete. Phase 1 service checks, migration/RLS tests, auth, and onboarding code are prepared; cloud activation and real auth-flow verification are pending. See [current Phase 1 status](PHASE-1-STATUS.md).
+Progress: Phase 0 is complete. The Phase 1 foundation migration is applied to Supabase; the owner reports deployed login and restaurant creation working. Phase 2 public menus are connected to Supabase, and Phase 3 owner editing, images, preview, and publishing are implemented. Both database migrations are applied. See [Phase 1 status](PHASE-1-STATUS.md), [Phase 2 status](PHASE-2-STATUS.md), and [Phase 3 status](PHASE-3-STATUS.md) for verification and remaining gates.
 
 ## Decisions and scope
 
@@ -131,4 +131,4 @@ Estimate: roughly **5–7 full-time development weeks**, followed by **two weeks
 - Cloudinary bills/limits vary with storage, transformations, and delivery. Set upload quotas and usage alerts; verify current account allowances rather than carrying over the PDF's R2 cost estimate. [Cloudinary documentation](https://cloudinary.com/documentation/node_quickstart).
 - Review current service terms/pricing before purchase; the original PDF's monthly cost table does not describe this replacement stack.
 
-Next concrete step: create the development Supabase project and Cloudinary environment, enter values in local `.env.local`, then implement Phase 1 migrations, RLS, and authentication.
+Next concrete step: deploy and verify the Phase 3 owner workflow, then implement Phase 4 templates, paste/CSV import with review, and printable/downloadable QR codes. Complete Vercel/mobile performance checks alongside that work.

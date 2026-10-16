@@ -19,15 +19,18 @@ Open http://localhost:3000. The demo requires no cloud credentials.
 | Route | Available now |
 | --- | --- |
 | `/` | Foundation landing page and build stages |
-| `/momo-house` | Cached, server-rendered sample menu with variants and NPR prices |
-| `/q/7Kx2pQa` | Uncached 302 to the sample menu; demonstrates permanent QR routing |
+| `/momo-house` | Clearly labelled sample menu with variants and NPR prices |
+| `/{slug}` | Cached Supabase public menu; generic draft/suspended state; old addresses redirect with 301 |
+| `/q/{shortCode}` | Uncached 302 to the restaurant's current address, including after a rename |
 | `/setup` | SWR connection check and setup guidance |
 | `/api/health` | Non-sensitive application health with no-store headers |
 | `/register`, `/login` | Owner account forms using Supabase Auth |
 | `/forgot-password`, `/reset-password`, `/auth/callback` | Email confirmation and password recovery |
 | `/onboarding`, `/dashboard` | Authenticated restaurant creation/list; requires the foundation migration |
+| `/dashboard/{restaurantId}` | Owner category/item/variant editing, settings, images, publishing, and restaurant switching |
+| `/dashboard/{restaurantId}/preview` | Private phone-sized preview of the saved menu |
 
-The sample restaurant and prices are illustrative. Auth, onboarding, and tenant SQL are implemented locally; the cloud schema, real confirmation/recovery emails, and authenticated end-to-end flow still need activation and verification. Uploads, editing, imports, billing, and deployment are later phases.
+The sample restaurant and prices are illustrative. Both cloud migrations are applied, and the owner reports deployed login and restaurant creation working. Public menus read the safe Supabase projection. The owner editor, publishing controls, private preview, and Cloudinary uploads are implemented in the local source. Imports, QR print/download tools, and billing remain later phases. See [Phase 2 status](docs/PHASE-2-STATUS.md) and [Phase 3 status](docs/PHASE-3-STATUS.md).
 
 ## Configure services for Phase 1
 
@@ -38,8 +41,8 @@ if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
 Edit `.env.local` locally; never commit or paste secrets into source. It is ignored by Git; `.env.example` is tracked.
 
 1. Create a development Supabase project. In its connection/API settings, copy the project URL and publishable key into `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-2. Apply `supabase/migrations/202610160001_foundation.sql` to the intended development project after inspecting its existing tables/migrations. Supabase OAuth MCP is configured locally; its database tools must be available in the active session before activation. Add `http://localhost:3000/auth/callback` to the auth redirect allowlist, configure the Auth Site URL, verify email/password settings, and configure SMTP for real users. Google OAuth is a later addition.
-3. Create a Cloudinary environment. Set the public cloud name and the server-only API key/secret. The starter does not expose upload signing before authorization is implemented.
+2. For a new project, apply the SQL files in `supabase/migrations` in filename order after inspecting its existing tables/migrations. Both are already applied to the currently configured Supabase project; do not apply them again there. Add `http://localhost:3000/auth/callback` to the auth redirect allowlist, configure the Auth Site URL, verify email/password settings, and configure SMTP for real users. Google OAuth is a later addition.
+3. Create a Cloudinary environment. Set the public cloud name and the server-only API key/secret. The owner editor uploads through an authenticated server route; API secrets and upload signatures are never returned to the browser.
 4. Keep `NEXT_PUBLIC_SITE_URL=http://localhost:3000` locally. Use the canonical HTTPS production domain for customer QR generation later.
 
 Client factories are provided in `src/lib/supabase`; the server-only Cloudinary factory is in `src/lib/cloudinary/server.ts`. Environment validation runs when these integrations are used, so the fixture remains usable before setup. No service-role key is needed for normal application traffic.

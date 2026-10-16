@@ -126,6 +126,32 @@ test("foundation migration and tenant security (embedded PostgreSQL)", async t =
       assert(!Object.hasOwn(menu, "memberships"));
     });
   });
+  await t.test("public menus omit hidden/deleted content and react to visibility and price changes", async () => {
+    const hiddenCategory = randomUUID();
+    await db.query("insert into public.menu_categories(id,restaurant_id,name,is_visible) values($1,$2,'Private category',false)", [hiddenCategory, restaurantB]);
+    await db.query("insert into public.menu_items(restaurant_id,category_id,name,price_minor) values($1,$2,'Private food',100)", [restaurantB, hiddenCategory]);
+    await db.query("update public.menu_items set price_minor=18005,is_available=false where id=$1", [itemB]);
+    await asUser(null, async () => {
+      const menu = await scalar("select public.get_public_menu('tenant-beta')");
+      assert(!JSON.stringify(menu).includes("Private food"));
+      const item = menu.categories.flatMap(category => category.items).find(item => item.id === itemB);
+      assert.equal(item.priceMinor, 18005);
+      assert.equal(item.isAvailable, false);
+      assert(!JSON.stringify(menu).includes("tenant-alpha"));
+    });
+    await db.query("update public.menu_items set deleted_at=now() where id=$1", [itemB]);
+    await asUser(null, async () => {
+      const menu = await scalar("select public.get_public_menu('tenant-beta')");
+      assert(!menu.categories.flatMap(category => category.items).some(item => item.id === itemB));
+    });
+    for (const status of ["DRAFT", "SUSPENDED"]) {
+      await db.query("update public.restaurants set status=$1 where id=$2", [status, restaurantB]);
+      assert.deepEqual(await asUser(null, () => scalar("select public.get_public_menu('tenant-beta')")), { status: "UNAVAILABLE" });
+    }
+    await db.query("update public.restaurants set status='PUBLISHED',deleted_at=now() where id=$1", [restaurantB]);
+    assert.equal(await asUser(null, () => scalar("select public.get_public_menu('tenant-beta')")), null);
+    await db.query("update public.restaurants set deleted_at=null where id=$1", [restaurantB]);
+  });
   await t.test("editor permissions and suspension/edit locks are enforced inside the database", async () => {
     await db.query("insert into public.memberships values($1,$2,'EDITOR',now())", [editor, restaurantA]);
     await asUser(editor, async () => {

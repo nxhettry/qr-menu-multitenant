@@ -8,7 +8,9 @@ Enable Cache Components in `next.config.ts`. Put `use cache` on the public repos
 
 Tag with `menu:<restaurantId>` and `menu-slug:<slug>`; slug must be an explicit cache key input. Start with `cacheLife({ stale: 30, revalidate: 60, expire: 300 })`. These are initial tuning values, not a guarantee of background polling. Next.js enforces a 30-second minimum for time-based client router reuse; using `stale: 0` would not promise instant browser freshness and also excludes this content from prerenders. The 60-second revalidation and 300-second expiry are fallback server freshness bounds. Missing slugs receive a slug tag too so creation/rename can invalidate negative lookups.
 
-The starter demonstrates this on immutable fixture data. Database queries, write paths, and live invalidation are Phase 1–3 work.
+`src/lib/menu/repository.ts` caches the cookie-free Supabase public projection with these tags and lifetimes. Draft/suspended results and missing slugs are cached by slug; published results also carry their restaurant tag. Onboarding invalidates the restaurant and slug tags after creation. Phase 3 editor actions and image routes use `src/lib/editor/invalidation.ts` after database commit, including current/previous slug tags on rename. The owner SWR hook refreshes its exact user/restaurant key after successful saves.
+
+Public content and metadata wait for a real request with `connection()` before reading the cached repository. An integration check exposed stale rendered unavailable content after a rapid unpublish → publish transition when the whole route was eligible for prerendered reuse. The request boundary prevents that rendered-page reuse while preserving full-projection query caching. HTML is rendered per request; do not claim that every scan is served as complete CDN-cached HTML. Production tests verify warm data reuse and repeated publication transitions.
 
 After an authorized save:
 
@@ -27,6 +29,8 @@ Already open customer menus will not magically change when a server cache tag ex
 ## QR and slug routing
 
 `/q/<shortCode>` responds with 302 plus `Cache-Control: no-store`; lookup freshness matters because the slug can change. Do not permanently cache that redirect. Never print a localhost or Vercel preview origin in customer QR codes. Historical URLs use explicit 301 after resolving their immutable association, with carefully chosen cache policy. Do not recycle old slugs.
+
+The proxy checks historical slugs for valid single-segment restaurant addresses using an uncached, anonymous RPC. Historical redirects use 301 plus `no-store`, so successive renames continue to resolve to the current address. This small lookup still runs on warm menu requests; only the full menu projection is shared-cache backed. Public requests never refresh auth cookies. Routing lookup failures return an uncached 503 rather than redirecting to a potentially outdated address. Consequently a warm menu is not an offline fallback during a database outage. The reserved demo address bypasses the live database.
 
 ## Dashboard, auth, and admin
 

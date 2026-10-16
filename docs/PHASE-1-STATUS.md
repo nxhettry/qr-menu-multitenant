@@ -1,5 +1,9 @@
 # Phase 1 status — 16 October 2026
 
+## Cloud activation update
+
+The foundation SQL was subsequently applied through Supabase MCP to project `hrkubaulqmegbbvuuwsj`, recorded remotely as migration `20261016085813_foundation`. All 12 application tables have RLS enabled. Live checks verified anonymous table-read/onboarding denial and public lookup execution. The owner now reports deployed login and restaurant creation working. The activation-pending notes below describe the earlier local setup. Generated database types, a separate preview database, SMTP setup, and a complete confirmation/recovery test still need verification.
+
 ## Verified service configuration
 
 - Supabase project Auth settings API accepted the configured publishable key.

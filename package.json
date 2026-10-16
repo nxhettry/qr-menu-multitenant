@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --test scripts/test-auth.mjs scripts/test-database.mjs",
+    "test": "node --test scripts/test-auth.mjs scripts/test-database.mjs scripts/test-public-menu.mjs scripts/test-editor.mjs",
+    "check:public-menu": "node scripts/check-public-menu.mjs",
+    "check:editor-browser": "node scripts/check-public-menu.mjs --browser",
     "check:services": "node scripts/check-services.mjs"
   },
   "dependencies": {
@@ -22,6 +24,7 @@
     "react-dom": "19.3.0",
     "react-hook-form": "^7.90.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
     "swr": "^2.5.1",
     "zod": "^4.6.7"
   },
@@ -35,6 +38,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "playwright-core": "^1.64.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -13,5 +13,3 @@ export function getCloudinary() {
   cloudinary.config({ ...config, secure: true });
   return cloudinary;
 }
-
-// Upload signing is added only after authentication and tenant authorization.

@@ -1,8 +1,31 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicEnv } from "@/lib/env/public";
+import { resolveOldSlug } from "@/lib/menu/routing";
+import { isRestaurantSlug } from "@/lib/menu/slugs";
 
 export async function proxy(request: NextRequest) {
+  const slug = request.nextUrl.pathname.slice(1);
+  if (isRestaurantSlug(slug)) {
+    try {
+      const currentSlug = await resolveOldSlug(slug);
+      if (currentSlug) {
+        const destination = request.nextUrl.clone();
+        destination.pathname = `/${currentSlug}`;
+        const redirect = NextResponse.redirect(destination, 301);
+        redirect.headers.set("Cache-Control", "no-store");
+        return redirect;
+      }
+    } catch {
+      return new NextResponse("We couldn’t load this menu. Please try again shortly.", {
+        status: 503, headers: { "Cache-Control": "no-store", "Retry-After": "30" },
+      });
+    }
+    return NextResponse.next();
+  }
+  if (!/^\/(login|register|forgot-password|reset-password|auth|onboarding|dashboard|api\/dashboard)(\/|$)/.test(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
   let response = NextResponse.next({ request });
   const { url, key } = getSupabasePublicEnv();
   const supabase = createServerClient(url, key, {
@@ -30,8 +53,9 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// Keep public menus and QR redirects entirely outside authentication work.
+// Single-segment public addresses only resolve history; they never refresh auth.
 export const config = { matcher: [
+  "/:slug",
   "/login", "/register", "/forgot-password", "/reset-password",
   "/auth/:path*", "/onboarding", "/dashboard/:path*", "/api/dashboard/:path*",
 ] };
