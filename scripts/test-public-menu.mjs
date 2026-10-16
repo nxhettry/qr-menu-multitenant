@@ -3,6 +3,20 @@ import assert from "node:assert/strict";
 import { publicMenuSchema } from "../src/lib/menu/schema.ts";
 import { demoMenu } from "../src/lib/menu/demo.ts";
 import { accessibleAccent, cloudinaryImageUrl, formatPrice, openingHoursEntries, phoneHref, safeMapUrl } from "../src/lib/menu/presentation.ts";
+import { filterMenu, indexMenu, itemAvailable } from "../src/lib/menu/filter.ts";
+
+test("menu search matches dish/category names, Nepali and variants, and combines with category selection", () => {
+  const index = indexMenu(demoMenu.categories);
+  assert.equal(filterMenu(index,"  MOMO  ","all")[0].items.length,2);
+  assert.equal(filterMenu(index,"म:म:","all")[0].items[0].name,"Steamed momo");
+  assert.equal(filterMenu(index,"Chicken","all")[0].items[0].name,"Steamed momo");
+  assert.equal(filterMenu(index,"From the kitchen","all")[0].items.length,2);
+  assert.equal(filterMenu(index,"momo",demoMenu.categories[1].id).length,0);
+  assert.equal(filterMenu(index,"","specials")[0].items.length,1);
+  assert.equal(filterMenu(index,"not present","all").length,0);
+  assert.equal(itemAvailable({...demoMenu.categories[0].items[0],isAvailable:false}),false);
+  assert.equal(itemAvailable({...demoMenu.categories[0].items[0],variants:demoMenu.categories[0].items[0].variants.map(variant=>({...variant,isAvailable:false}))}),false);
+});
 
 test("public projection accepts published, unavailable, and missing menus while stripping private fields", () => {
   assert.equal(publicMenuSchema.parse({ ...demoMenu, memberships: ["private"], notes: "private" }).status, "PUBLISHED");

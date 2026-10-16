@@ -10,7 +10,7 @@ export const itemInput = z.object({
   ...identity, category_id: z.uuid(), name: z.string().trim().min(1).max(150), name_ne: optionalText(150),
   description: optionalText(1000), description_ne: optionalText(1000),
   price_minor: money.nullable(), variants: z.array(variantInput).max(30),
-  is_available: z.boolean(), diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
+  is_available: z.boolean(), is_featured: z.boolean().optional(), diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
   spice_level: z.number().int().min(0).max(3).nullable(), confirm_prices: z.boolean(),
 }).refine(item => item.variants.length ? item.price_minor === null : item.price_minor !== null, { message: "Enter one price or at least one variant." });
 export const settingsInput = restaurantSchema.extend({

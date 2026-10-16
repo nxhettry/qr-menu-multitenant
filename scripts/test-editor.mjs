@@ -35,7 +35,7 @@ test("owner editor transactions, publication, roles and asset isolation", async 
     create table auth.users(id uuid primary key,email_confirmed_at timestamptz);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth,public to anon,authenticated;`);
-  for (const file of ["202610160001_foundation.sql","202610160002_owner_editor.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),"utf8"));
+  for (const file of ["202610160001_foundation.sql","202610160002_owner_editor.sql","202610160003_featured_menu.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),"utf8"));
   const ownerA=randomUUID(), ownerB=randomUUID(), editor=randomUUID();
   for (const id of [ownerA,ownerB,editor]) await db.query("insert into auth.users values($1,now())",[id]);
   async function asUser(id,fn) {
@@ -97,6 +97,24 @@ test("owner editor transactions, publication, roles and asset isolation", async 
     await mutate(editor,tenantA,"availability",{id:itemA,available:false});
     for (const [op,payload] of [["settings",{}],["visibility",{published:true}],["reserveUpload",{kind:"logo"}],["removeImage",{kind:"cover"}]]) await assert.rejects(mutate(editor,tenantA,op,payload),denied);
     await mutate(editor,tenantA,"reserveUpload",{kind:"item",item_id:itemA});
+  });
+  await t.test("specials are saved atomically, tenant scoped, bounded and projected only through visible categories", async () => {
+    await mutate(ownerA,tenantA,"saveItem",{...input(catA,itemA),is_featured:true});
+    assert.equal(await scalar("select is_featured from public.menu_items where id=$1",[itemA]),true);
+    await assert.rejects(mutate(ownerA,tenantA,"saveItem",{...input(catA,itemB),is_featured:true}),missing);
+    const extras=[];
+    for(let i=0;i<5;i++)extras.push((await mutate(ownerA,tenantA,"saveItem",{...input(catA),name:`Special ${i}`,is_featured:true})).id);
+    await assert.rejects(mutate(ownerA,tenantA,"saveItem",{...input(catA),name:"Seventh",is_featured:true}),invalid);
+    assert.equal(await scalar("select count(*)::int from public.menu_items where restaurant_id=$1 and is_featured",[tenantA]),6);
+    await db.query("update public.restaurants set status='PUBLISHED' where id=$1",[tenantA]);
+    const menu=await asUser(null,()=>scalar("select public.get_public_menu('editor-alpha')"));
+    assert.equal(menu.categories.flatMap(category=>category.items).filter(item=>item.isFeatured).length,6);
+    await mutate(ownerA,tenantA,"saveCategory",{...category("Momo",catA),is_visible:false});
+    assert.equal((await asUser(null,()=>scalar("select public.get_public_menu('editor-alpha')"))).categories.flatMap(category=>category.items).filter(item=>item.isFeatured).length,0);
+    await mutate(ownerA,tenantA,"saveCategory",category("Momo",catA));
+    for(const id of extras)await mutate(ownerA,tenantA,"delete",{kind:"item",id});
+    await mutate(ownerA,tenantA,"saveItem",{...input(catA,itemA),is_featured:false});
+    await db.query("update public.restaurants set status='DRAFT' where id=$1",[tenantA]);
   });
   await t.test("publication checks visible content and every example price atomically",async()=>{
     const empty=await asUser(ownerA,()=>scalar("select public.create_restaurant('Empty','empty-editor')"));

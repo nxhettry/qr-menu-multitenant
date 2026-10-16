@@ -1,5 +1,7 @@
 # Phase 3 — owner menu editor
 
+The subsequent public menu redesign, featured-item migration, owner instructions, and latest verification are recorded in [Menu design](MENU-DESIGN.md).
+
 The supplied **QR Menu SaaS — Revised Build Plan.pdf**, dated 15 October 2026, was read in full (11 pages). This implements its M3 owner-dashboard milestone using the already selected Supabase, SWR, and Cloudinary stack. It does not replace the established stack with the PDF's Neon/Prisma/Better Auth/R2 alternatives.
 
 ## Available

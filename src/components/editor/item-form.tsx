@@ -6,7 +6,7 @@ import { Field, FormError, inputClass, primaryClass, secondaryClass } from "./fo
 
 type ItemFields = {
   category_id: string; name: string; name_ne: string; description: string; description_ne: string;
-  price: string; uses_variants: boolean; is_available: boolean; diet: string; spice_level: string; confirm_prices: boolean;
+  price: string; uses_variants: boolean; is_available: boolean; is_featured: boolean; diet: string; spice_level: string; confirm_prices: boolean;
   variants: { name: string; name_ne: string; price: string; is_available: boolean }[];
 };
 
@@ -17,7 +17,7 @@ export function ItemForm({ item, categoryId, categories, pending, onSave, onCanc
   const { register, control, handleSubmit, setError, formState: { errors } } = useForm<ItemFields>({ defaultValues: {
     category_id: item?.category_id ?? categoryId, name: item?.name ?? "", name_ne: item?.name_ne ?? "",
     description: item?.description ?? "", description_ne: item?.description_ne ?? "", price: priceInputValue(item?.price_minor ?? null),
-    uses_variants: item?.uses_variants ?? false, is_available: item?.is_available ?? true, diet: item?.diet ?? "", spice_level: item?.spice_level?.toString() ?? "",
+    uses_variants: item?.uses_variants ?? false, is_available: item?.is_available ?? true, is_featured: item?.is_featured ?? false, diet: item?.diet ?? "", spice_level: item?.spice_level?.toString() ?? "",
     confirm_prices: false, variants: item?.variants.map(variant => ({ name: variant.name, name_ne: variant.name_ne ?? "", price: priceInputValue(variant.price_minor), is_available: variant.is_available })) ?? [],
   } });
   const { fields, append, remove, move } = useFieldArray({ control, name: "variants" });
@@ -61,6 +61,7 @@ export function ItemForm({ item, categoryId, categories, pending, onSave, onCanc
         <Field label="Spice level"><select {...register("spice_level")} className={inputClass}><option value="">Not specified</option><option value="0">No spice</option><option value="1">Mild</option><option value="2">Medium</option><option value="3">Hot</option></select></Field>
       </div>
       <label className="flex items-center gap-3 text-sm"><input {...register("is_available")} type="checkbox" className="h-5 w-5" />Available today</label>
+      <label className="flex items-start gap-3 rounded-xl bg-orange-100/60 p-4 text-sm"><input {...register("is_featured")} type="checkbox" className="mt-0.5 h-5 w-5" /><span>Feature in specials banner<span className="mt-1 block text-xs leading-5 text-stone-600">Choose up to six specials. Their names, prices, and item photos appear at the top of your public menu. Hidden categories and sold-out specials stay out of the banner.</span></span></label>
       {item?.is_example_price && <label className="flex items-start gap-3 rounded-xl bg-amber-100 p-4 text-sm"><input {...register("confirm_prices")} type="checkbox" className="mt-1 h-5 w-5" required />I have checked every example price for this item and its variants.</label>}
       <FormError message={errors.root?.message} />
       <div className="flex flex-wrap gap-3"><button disabled={pending} className={primaryClass}>{pending ? "Saving…" : "Save item"}</button><button type="button" onClick={onCancel} className={secondaryClass}>Cancel</button></div>

@@ -1,10 +1,12 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { getSupabasePublicEnv } from "@/lib/env/public";
 
 // Never use inside shared `use cache`. src/proxy.ts handles token refresh.
 export async function createClient() {
+  await connection();
   const cookieStore = await cookies();
   const { url, key } = getSupabasePublicEnv();
   return createServerClient(url, key, {

@@ -14,7 +14,7 @@ export function previewMenu(data: EditorData): PublishedMenu {
       items: category.items.map(item => ({
         id: item.id, name: item.name, nameNe: item.name_ne, description: item.description, descriptionNe: item.description_ne,
         priceMinor: item.price_minor, imagePublicId: item.image_public_id, imageVersion: item.image_version,
-        isAvailable: item.is_available, diet: item.diet, spiceLevel: item.spice_level,
+        isAvailable: item.is_available, isFeatured: item.is_featured, diet: item.diet, spiceLevel: item.spice_level,
         variants: item.variants.map(variant => ({ id: variant.id, name: variant.name, nameNe: variant.name_ne, priceMinor: variant.price_minor, isAvailable: variant.is_available })),
       })),
     })),

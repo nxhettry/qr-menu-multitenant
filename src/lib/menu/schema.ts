@@ -9,7 +9,7 @@ const variantSchema = z.object({
 const itemSchema = z.object({
   id: z.uuid(), name: z.string(), nameNe: text, description: text, descriptionNe: text,
   priceMinor: price.nullable(), imagePublicId: text, imageVersion: assetVersion,
-  isAvailable: z.boolean(), diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
+  isAvailable: z.boolean(), isFeatured: z.boolean().default(false), diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
   spiceLevel: z.number().int().min(0).max(3).nullable(), variants: z.array(variantSchema),
 });
 export const publishedMenuSchema = z.object({

@@ -43,9 +43,12 @@ try {
     grant usage on schema auth,public to anon,authenticated;`);
   await db.exec(await readFile(new URL("../supabase/migrations/202610160001_foundation.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610160002_owner_editor.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202610160003_featured_menu.sql", import.meta.url), "utf8"));
   const { rows: [restaurant] } = await db.query("insert into public.restaurants(name,slug,status,phone,map_url,vat_percent,prices_include_vat) values('Live Kitchen','live-kitchen','PUBLISHED','+977 9801234567','https://maps.google.com/?q=Kathmandu',13,true) returning id,short_code");
   const { rows: [category] } = await db.query("insert into public.menu_categories(restaurant_id,name) values($1,'Lunch') returning id", [restaurant.id]);
   await db.query("insert into public.menu_items(restaurant_id,category_id,name,description,price_minor,is_available) values($1,$2,'Test thali','A fresh seasonal lunch.',18005,false)", [restaurant.id, category.id]);
+  await db.query("update public.restaurants set logo_public_id=$2,logo_version=1,cover_public_id=$3,cover_version=1 where id=$1", [restaurant.id, `qrmenu/${restaurant.id}/${randomUUID()}`, `qrmenu/${restaurant.id}/${randomUUID()}`]);
+  await db.query("update public.menu_items set image_public_id=$2,image_version=1 where restaurant_id=$1", [restaurant.id, `qrmenu/${restaurant.id}/${randomUUID()}`]);
   await db.query("insert into public.restaurants(name,slug,status) values('Other Kitchen','other-kitchen','PUBLISHED'),('Secret Draft Name','private-draft','DRAFT'),('Secret Suspended Name','paused-kitchen','SUSPENDED')");
   await db.query("insert into auth.users values($1,now())", [ownerId]);
   const draftId = (await db.query("select id from public.restaurants where slug='private-draft'")).rows[0].id;
@@ -116,7 +119,7 @@ try {
   });
   mock.listen(0, "127.0.0.1");
   await once(mock, "listening");
-  const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${mock.address().port}`, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: publicKey, NEXT_TELEMETRY_DISABLED: "1" };
+  const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${mock.address().port}`, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: publicKey, NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: "menu-test", NEXT_TELEMETRY_DISABLED: "1" };
   console.log("Building production app against isolated, in-memory PostgreSQL…");
   const build = await runNext(["build"], env);
   const [code] = await once(build, "exit");

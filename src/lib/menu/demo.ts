@@ -14,7 +14,7 @@ export const demoMenu: PublishedMenu = {
     { id: "00000000-0000-4000-8000-000000000001", name: "Momo", nameNe: null, items: [
       { id: "00000000-0000-4000-8000-000000000011", name: "Steamed momo", nameNe: "म:म:",
         description: "Hand-folded dumplings with tomato and sesame achar.", descriptionNe: null,
-        priceMinor: null, imagePublicId: null, imageVersion: null, isAvailable: true, diet: null, spiceLevel: 1,
+        priceMinor: null, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: true, diet: null, spiceLevel: 1,
         variants: [
           { id: "00000000-0000-4000-8000-000000000111", name: "Veg", nameNe: null, priceMinor: 15000, isAvailable: true },
           { id: "00000000-0000-4000-8000-000000000112", name: "Chicken", nameNe: null, priceMinor: 20000, isAvailable: true },
@@ -22,7 +22,7 @@ export const demoMenu: PublishedMenu = {
         ] },
       { id: "00000000-0000-4000-8000-000000000012", name: "Jhol momo", nameNe: null,
         description: "Dumplings in a warming bowl of spiced sesame broth.", descriptionNe: null,
-        priceMinor: null, imagePublicId: null, imageVersion: null, isAvailable: true, diet: null, spiceLevel: 2,
+        priceMinor: null, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: false, diet: null, spiceLevel: 2,
         variants: [
           { id: "00000000-0000-4000-8000-000000000121", name: "Veg", nameNe: null, priceMinor: 18000, isAvailable: true },
           { id: "00000000-0000-4000-8000-000000000122", name: "Buff", nameNe: null, priceMinor: 22000, isAvailable: true },
@@ -31,18 +31,18 @@ export const demoMenu: PublishedMenu = {
     { id: "00000000-0000-4000-8000-000000000002", name: "From the kitchen", nameNe: null, items: [
       { id: "00000000-0000-4000-8000-000000000021", name: "Vegetable chowmein", nameNe: null,
         description: "Wok-tossed noodles, fresh vegetables, and house spices.", descriptionNe: null,
-        priceMinor: 16000, imagePublicId: null, imageVersion: null, isAvailable: true, diet: "VEG", spiceLevel: null, variants: [] },
+        priceMinor: 16000, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: false, diet: "VEG", spiceLevel: null, variants: [] },
       { id: "00000000-0000-4000-8000-000000000022", name: "Dal bhat set", nameNe: "दाल भात",
         description: "Rice, lentils, seasonal tarkari, greens, and achar.", descriptionNe: null,
-        priceMinor: 28000, imagePublicId: null, imageVersion: null, isAvailable: true, diet: "VEG", spiceLevel: null, variants: [] },
+        priceMinor: 28000, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: false, diet: "VEG", spiceLevel: null, variants: [] },
     ] },
     { id: "00000000-0000-4000-8000-000000000003", name: "Something to sip", nameNe: null, items: [
       { id: "00000000-0000-4000-8000-000000000031", name: "Masala milk tea", nameNe: "चिया",
         description: "Freshly brewed with ginger and cardamom.", descriptionNe: null,
-        priceMinor: 6000, imagePublicId: null, imageVersion: null, isAvailable: true, diet: "VEG", spiceLevel: null, variants: [] },
+        priceMinor: 6000, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: false, diet: "VEG", spiceLevel: null, variants: [] },
       { id: "00000000-0000-4000-8000-000000000032", name: "Sweet lassi", nameNe: null,
         description: "Chilled yogurt, lightly sweetened.", descriptionNe: null,
-        priceMinor: 12000, imagePublicId: null, imageVersion: null, isAvailable: true, diet: "VEG", spiceLevel: null, variants: [] },
+        priceMinor: 12000, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: false, diet: "VEG", spiceLevel: null, variants: [] },
     ] },
   ],
 };

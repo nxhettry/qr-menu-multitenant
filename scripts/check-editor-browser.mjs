@@ -15,7 +15,12 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     async function save(button) {
       const refreshed = page.waitForResponse(response => response.url().includes(snapshotPath) && response.request().method() === "GET" && response.status() === 200);
       await button.click();
-      return (await refreshed).json();
+      try { return (await refreshed).json(); }
+      catch (error) {
+        await mkdir("artifacts", { recursive: true });
+        await page.screenshot({ path: "artifacts/editor-save-failure.png", fullPage: true });
+        throw new Error(`${error.message}\n${await page.locator("main").innerText()}`);
+      }
     }
     await page.goto(`${base}/dashboard/${restaurantId}`);
     await page.getByRole("heading", { name: "Your menu", exact: true }).waitFor();
@@ -40,15 +45,70 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     await page.getByRole("button", { name: "+ Add variant", exact: true }).click();
     await page.getByLabel("Variant name", { exact: true }).nth(1).fill("Buff");
     await page.getByLabel("Price (Rs)", { exact: true }).nth(1).fill("220.05");
+    await page.getByLabel(/^Diet/).selectOption("NON_VEG");
+    await page.getByLabel("Feature in specials banner", { exact: false }).check();
+    await page.getByLabel("Available today", { exact: true }).last().check();
     await page.getByRole("button", { name: "Move variant 2 up", exact: true }).click();
     const variants = await save(page.getByRole("button", { name: "Save item", exact: true }));
     const savedItem = variants.categories.flatMap(category => category.items).find(item => item.name === "Phone momo");
     assert.deepEqual(savedItem.variants.map(variant => [variant.name, variant.price_minor]), [["Buff", 22005], ["Veg", 18001]]);
+    assert.equal(savedItem.is_featured, true);
     const reordered = await save(category.getByRole("button", { name: "Move Browser specials up", exact: true }));
     assert.equal(reordered.categories[0].name, "Browser specials");
     await item.locator("summary").filter({ hasText: "Item photo" }).click();
     await item.getByLabel("Upload item image", { exact: true }).setInputFiles({ name: "fake.png", mimeType: "image/png", buffer: Buffer.from("not a real image") });
     await item.getByText("Choose a still JPEG, PNG, or WebP image smaller than 3 MB and 20 megapixels.", { exact: true }).waitFor();
+    await category.getByRole("button", { name: "+ Add item", exact: true }).click();
+    await page.getByLabel("Item name", { exact: true }).fill("Garden salad");
+    await page.getByLabel("Price (Rs)", { exact: true }).fill("120");
+    await page.getByLabel(/^Diet/).selectOption("VEG");
+    await page.getByLabel("Feature in specials banner", { exact: false }).check();
+    await save(page.getByRole("button", { name: "Save item", exact: true }));
+
+    const guest = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    await guest.route("https://res.cloudinary.com/**", route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#a86534"/><circle cx="400" cy="300" r="210" fill="#f6e4c5"/><circle cx="400" cy="300" r="155" fill="#66804b"/></svg>' }));
+    const publicPage = await guest.newPage();
+    publicPage.on("pageerror", error => errors.push(error.message));
+    await publicPage.goto(`${base}/renamed-kitchen`);
+    await publicPage.getByRole("region", { name: "Restaurant specials" }).getByRole("heading", { name: "Phone momo", exact: true }).waitFor();
+    await publicPage.getByRole("img", { name: "Live Kitchen logo", exact: true }).evaluate(image => image.decode());
+    await publicPage.getByRole("region", { name: "Restaurant specials" }).locator("img").evaluate(image => image.decode());
+    await publicPage.getByRole("button", { name: "Next special", exact: true }).click();
+    await publicPage.getByRole("region", { name: "Restaurant specials" }).getByRole("heading", { name: "Garden salad", exact: true }).waitFor();
+    await publicPage.getByRole("button", { name: "Previous special", exact: true }).click();
+    assert.equal(await publicPage.locator('[data-diet="NON_VEG"]').count(), 1);
+    assert.equal(await publicPage.locator('[data-diet="VEG"]').count(), 1);
+    const colors = await publicPage.locator("[data-diet]").evaluateAll(nodes => nodes.map(node => ({ diet: node.dataset.diet, color: getComputedStyle(node).color })));
+    assert(colors.find(item => item.diet === "VEG").color !== colors.find(item => item.diet === "NON_VEG").color);
+    assert.equal(await publicPage.getByRole("button", { name: /cart|favo[u]?rite|add to/i }).count(), 0);
+    const search = publicPage.getByRole("searchbox", { name: "Search items or categories" });
+    await search.fill("Garden salad");
+    await publicPage.getByRole("heading", { name: "Garden salad", exact: true }).waitFor();
+    await publicPage.getByRole("heading", { name: "Phone momo", exact: true }).waitFor({ state: "hidden" });
+    await search.fill("Browser specials");
+    await publicPage.getByRole("heading", { name: "Phone momo", exact: true }).waitFor();
+    await search.fill("no dish matches this");
+    await publicPage.getByRole("heading", { name: "No matching dishes", exact: true }).waitFor();
+    await publicPage.getByRole("button", { name: "Show all dishes", exact: true }).click();
+    await publicPage.getByRole("navigation", { name: "Menu categories" }).getByRole("button", { name: "Lunch", exact: true }).click();
+    await publicPage.getByRole("heading", { name: "Phone momo", exact: true }).waitFor({ state: "hidden" });
+    await publicPage.getByRole("heading", { name: "Test thali", exact: true }).waitFor();
+    await publicPage.getByRole("button", { name: "All dishes", exact: true }).click();
+    await publicPage.getByRole("region", { name: "Restaurant specials" }).waitFor();
+    await publicPage.getByRole("button", { name: "Specials", exact: true }).click();
+    await publicPage.getByRole("heading", { name: "Test thali", exact: true }).waitFor({ state: "hidden" });
+    await publicPage.getByRole("button", { name: "All dishes", exact: true }).click();
+    assert(await publicPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "public menu must fit a phone viewport");
+    const columns = await publicPage.locator("#menu-items section > div.grid").first().evaluate(node => getComputedStyle(node).gridTemplateColumns.split(" ").length);
+    assert.equal(columns, 2);
+    await mkdir("artifacts", { recursive: true });
+    await publicPage.screenshot({ path: "artifacts/public-menu-mobile.png", fullPage: true });
+    await publicPage.setViewportSize({ width: 320, height: 740 });
+    assert(await publicPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "public menu must fit a narrow phone viewport");
+    await publicPage.setViewportSize({ width: 1280, height: 900 });
+    await publicPage.screenshot({ path: "artifacts/public-menu-desktop.png", fullPage: true });
+    await guest.close();
+    console.log("PASS public mobile search by dish/category, category filtering, two-column cards, specials saved from dashboard, diet colors and no cart/favourites");
 
     await page.getByRole("button", { name: "Settings & images", exact: true }).click();
     await page.getByLabel("Restaurant name", { exact: true }).fill("Browser Kitchen");
@@ -62,7 +122,7 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     const previewOpened = context.waitForEvent("page");
     await page.getByRole("link", { name: "Phone preview ↗", exact: true }).click();
     const preview = await previewOpened;
-    await preview.getByRole("heading", { name: "Phone momo", exact: true }).waitFor();
+    await preview.getByRole("heading", { name: "Phone momo", exact: true, level: 3 }).waitFor();
     await preview.close();
     await page.getByRole("button", { name: "Unpublish", exact: true }).click();
     await save(page.getByRole("button", { name: "Unpublish menu", exact: true }));

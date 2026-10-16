@@ -22,6 +22,7 @@ export function requiresManagement(input: EditorMutation) {
 
 const mutationReceipt = z.object({ slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/), previousSlug: z.string(), id: z.string().nullable().optional(), uploadId: z.uuid().optional(), publicId: z.string().optional() });
 const safeMessages = new Set([
+  "Choose up to six specials for your banner",
   "Confirm the example prices before saving", "Confirm every example price before publishing",
   "Add an item to a visible category before publishing", "Move or remove the items in this category first",
   "The menu changed. Refresh before reordering", "Category limit reached", "Item limit reached",
