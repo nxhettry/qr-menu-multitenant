@@ -1,0 +1,98 @@
+import assert from "node:assert/strict";
+import { mkdir } from "node:fs/promises";
+
+export async function checkBulkMenuBrowser({ browser, page, base, save, errors }) {
+  await page.getByRole("button", { name: "Bulk import", exact: true }).click();
+  await page.getByRole("heading", { name: "Add items in bulk", exact: true }).waitFor();
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Download Excel template ↓", exact: true }).click();
+  const download = await downloaded;
+  assert.equal(download.suggestedFilename(), "menu-import.xlsx");
+  await mkdir("artifacts", { recursive: true });
+  await download.saveAs("artifacts/downloaded-menu-import.xlsx");
+  await page.getByLabel("Choose your completed sheet", { exact: true }).setInputFiles("public/templates/menu-import.xlsx");
+  await page.getByText("2 rows → 1 item · Ready for your review", { exact: true }).waitFor();
+  await page.screenshot({ path: "artifacts/bulk-import-review-mobile.png", fullPage: true });
+  await page.getByRole("checkbox", { name: /I have checked every item/ }).check();
+  const imported = await save(page.getByRole("button", { name: "Import 1 item", exact: true }));
+  const root = imported.categories.find(category => category.name === "Momo" && !category.parent_id);
+  const child = imported.categories.find(category => category.name === "Chicken" && category.parent_id === root.id);
+  assert.equal(child.items[0].variants.length, 2);
+  assert.equal(child.items[0].diet, "NON_VEG");
+
+  await page.getByLabel("Choose your completed sheet", { exact: true }).setInputFiles("public/templates/menu-import.csv");
+  await page.getByText(/This item already exists in this category/).first().waitFor();
+  assert(await page.getByRole("button", { name: "Import 0 items", exact: true }).isDisabled());
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  const category = page.locator("section").filter({ has: page.getByRole("heading", { name: "Momo / Chicken", exact: true }) });
+  const item = category.locator("li").filter({ has: page.getByRole("heading", { name: "Steamed momo", exact: true }) });
+  await item.getByRole("button", { name: "Edit item", exact: true }).click();
+  await page.getByLabel("New item", { exact: true }).check();
+  await page.locator("summary").filter({ hasText: "Optional details & allergens" }).click();
+  await page.getByLabel("Preparation time (minutes)", { exact: true }).fill("20");
+  await page.locator("summary").filter({ hasText: /^Add-ons & extras/ }).click();
+  await page.getByRole("button", { name: "+ Add option", exact: true }).click();
+  await page.getByLabel("Add-on name", { exact: true }).last().fill("Extra soup");
+  await page.getByLabel("Extra price (Rs)", { exact: true }).last().fill("20.05");
+  const updated = await save(page.getByRole("button", { name: "Save item", exact: true }));
+  assert.equal(updated.categories.find(value => value.id === child.id).items[0].details.addon_groups[0].options[2].price_minor, 2005);
+
+  const guest = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  try {
+    const publicPage = await guest.newPage();
+    publicPage.on("pageerror", error => errors.push(error.message));
+    const path = `${base}/browser-kitchen`;
+    await publicPage.goto(path);
+    await publicPage.getByRole("navigation", { name: "Menu categories", exact: true }).getByRole("button", { name: "Momo", exact: true }).click();
+    await publicPage.getByRole("navigation", { name: "Menu subcategories", exact: true }).getByRole("button", { name: "Chicken", exact: true }).click();
+    const dish = publicPage.locator("article").filter({ has: publicPage.getByRole("heading", { name: "Steamed momo", exact: true }) });
+    await dish.getByText("Popular", { exact: true }).waitFor();
+    await dish.getByText("New", { exact: true }).waitFor();
+    await dish.getByText("20 min", { exact: true }).waitFor();
+    assert.equal(await dish.getByText(/kcal/).count(), 0);
+    await dish.locator("summary").filter({ hasText: "Allergen information" }).click();
+    await dish.getByText("Contains: Wheat, Sesame.", { exact: true }).waitFor();
+    await dish.locator("summary").filter({ hasText: "Add-ons & extras" }).click();
+    await dish.getByText("+Rs 20.05", { exact: true }).waitFor();
+    assert.equal(await dish.evaluate(node => getComputedStyle(node).gridColumnEnd), "span 2", "opened detail card should use the full phone row");
+    await publicPage.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await publicPage.screenshot({ path: "artifacts/menu-details-mobile.png", fullPage: true });
+    await publicPage.setViewportSize({ width: 320, height: 740 });
+    await publicPage.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    assert(await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "rich menu must fit 320px");
+    await publicPage.screenshot({ path: "artifacts/menu-details-narrow.png", fullPage: true });
+    await publicPage.setViewportSize({ width: 1280, height: 900 });
+    await publicPage.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    assert(await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await publicPage.screenshot({ path: "artifacts/menu-details-desktop.png", fullPage: true });
+
+    const visible = item.getByRole("checkbox", { name: "Show Steamed momo on menu", exact: true });
+    await save(visible);
+    await publicPage.reload();
+    assert.equal(await publicPage.getByRole("heading", { name: "Steamed momo", exact: true }).count(), 0);
+    await save(visible);
+    await page.getByRole("button", { name: "Menu display", exact: true }).click();
+    await page.getByRole("checkbox", { name: "Tags", exact: true }).uncheck();
+    await page.getByRole("checkbox", { name: "Preparation time", exact: true }).uncheck();
+    await save(page.getByRole("button", { name: "Save display options", exact: true }));
+    await publicPage.reload();
+    const restored = publicPage.locator("article").filter({ has: publicPage.getByRole("heading", { name: "Steamed momo", exact: true }) });
+    await restored.waitFor();
+    assert.equal(await restored.getByRole("list", { name: "Item tags", exact: true }).count(), 0);
+    assert.equal(await restored.getByText("20 min", { exact: true }).count(), 0);
+    await page.getByRole("checkbox", { name: "Tags", exact: true }).check();
+    await page.getByRole("checkbox", { name: "Preparation time", exact: true }).check();
+    await save(page.getByRole("button", { name: "Save display options", exact: true }));
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    await page.setViewportSize({ width: 320, height: 740 });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "expanded editor must fit 320px");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("button", { name: "Bulk import", exact: true }).focus();
+    await page.keyboard.press("Enter");
+    await page.getByRole("heading", { name: "Add items in bulk", exact: true }).waitFor();
+    await page.keyboard.press("Tab");
+    assert(await page.evaluate(() => document.activeElement?.textContent === "Menu display"));
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    console.log("PASS actual Excel download/import, duplicate CSV review, nested categories, rich details, add-on editing, item/global visibility, keyboard activation and responsive layouts");
+  } finally { await guest.close(); }
+}

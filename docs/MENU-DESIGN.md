@@ -1,5 +1,7 @@
 # Public menu and specials
 
+Bulk Excel/CSV import, category/subcategory hierarchy, item visibility, rich details and guest display controls are documented in [BULK-IMPORT.md](BULK-IMPORT.md). This extends the original menu described below.
+
 The public menu follows the supplied reference: warm ivory styling, restaurant logo/name, search, horizontal category filters, a specials hero, and a responsive dish grid. Phones show two cards per row; wider screens show three. There are no cart or favourite controls, ratings, or checkout.
 
 ## Owner controls

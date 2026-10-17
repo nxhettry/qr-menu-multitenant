@@ -1,4 +1,5 @@
 import type { PublishedMenu } from "./schema";
+import { itemDetailsSchema } from "./details.ts";
 
 export const DEMO_SLUG = "momo-house";
 export const DEMO_SHORT_CODE = "7Kx2pQa";
@@ -13,19 +14,19 @@ export const demoMenu: PublishedMenu = {
   categories: [
     { id: "00000000-0000-4000-8000-000000000001", name: "Momo", nameNe: null, items: [
       { id: "00000000-0000-4000-8000-000000000011", name: "Steamed momo", nameNe: "म:म:",
-        description: "Hand-folded dumplings with tomato and sesame achar.", descriptionNe: null,
-        priceMinor: null, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: true, diet: null, spiceLevel: 1,
+        description: "Hand-folded chicken dumplings with tomato and sesame achar.", descriptionNe: null,
+        subcategory: "Chicken", details: itemDetailsSchema.parse({ is_popular: true, preparation_minutes: 15, tags: ["Handmade"], allergens: ["Wheat", "Sesame"], allergen_notes: "Illustrative information only. Ask the restaurant to confirm ingredients.", addon_groups: [{ name: "Extras", min_select: 0, max_select: 1, options: [{ name: "Extra achar", price_minor: 3000, is_available: true }] }] }),
+        priceMinor: null, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: true, diet: "NON_VEG", spiceLevel: 1,
         variants: [
-          { id: "00000000-0000-4000-8000-000000000111", name: "Veg", nameNe: null, priceMinor: 15000, isAvailable: true },
-          { id: "00000000-0000-4000-8000-000000000112", name: "Chicken", nameNe: null, priceMinor: 20000, isAvailable: true },
-          { id: "00000000-0000-4000-8000-000000000113", name: "Buff", nameNe: null, priceMinor: 18000, isAvailable: true },
+          { id: "00000000-0000-4000-8000-000000000111", name: "Half plate", nameNe: null, priceMinor: 15000, isAvailable: true },
+          { id: "00000000-0000-4000-8000-000000000112", name: "Full plate", nameNe: null, priceMinor: 25000, isAvailable: true },
         ] },
       { id: "00000000-0000-4000-8000-000000000012", name: "Jhol momo", nameNe: null,
         description: "Dumplings in a warming bowl of spiced sesame broth.", descriptionNe: null,
-        priceMinor: null, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: false, diet: null, spiceLevel: 2,
+        subcategory: "Buff", priceMinor: null, imagePublicId: null, imageVersion: null, isAvailable: true, isFeatured: false, diet: "NON_VEG", spiceLevel: 2,
         variants: [
-          { id: "00000000-0000-4000-8000-000000000121", name: "Veg", nameNe: null, priceMinor: 18000, isAvailable: true },
-          { id: "00000000-0000-4000-8000-000000000122", name: "Buff", nameNe: null, priceMinor: 22000, isAvailable: true },
+          { id: "00000000-0000-4000-8000-000000000121", name: "Half plate", nameNe: null, priceMinor: 18000, isAvailable: true },
+          { id: "00000000-0000-4000-8000-000000000122", name: "Full plate", nameNe: null, priceMinor: 22000, isAvailable: true },
         ] },
     ] },
     { id: "00000000-0000-4000-8000-000000000002", name: "From the kitchen", nameNe: null, items: [

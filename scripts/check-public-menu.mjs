@@ -44,6 +44,7 @@ try {
   await db.exec(await readFile(new URL("../supabase/migrations/202610160001_foundation.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610160002_owner_editor.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610160003_featured_menu.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202610170001_bulk_menu.sql", import.meta.url), "utf8"));
   const { rows: [restaurant] } = await db.query("insert into public.restaurants(name,slug,status,phone,map_url,vat_percent,prices_include_vat) values('Live Kitchen','live-kitchen','PUBLISHED','+977 9801234567','https://maps.google.com/?q=Kathmandu',13,true) returning id,short_code");
   const { rows: [category] } = await db.query("insert into public.menu_categories(restaurant_id,name) values($1,'Lunch') returning id", [restaurant.id]);
   await db.query("insert into public.menu_items(restaurant_id,category_id,name,description,price_minor,is_available) values($1,$2,'Test thali','A fresh seasonal lunch.',18005,false)", [restaurant.id, category.id]);

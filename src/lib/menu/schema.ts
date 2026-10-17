@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { itemDetailsSchema } from "./details.ts";
 
 const text = z.string().nullable();
 const assetVersion = z.number().int().positive().nullable();
@@ -11,6 +12,7 @@ const itemSchema = z.object({
   priceMinor: price.nullable(), imagePublicId: text, imageVersion: assetVersion,
   isAvailable: z.boolean(), isFeatured: z.boolean().default(false), diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
   spiceLevel: z.number().int().min(0).max(3).nullable(), variants: z.array(variantSchema),
+  details: itemDetailsSchema.optional(), subcategory: z.string().nullable().optional(),
 });
 export const publishedMenuSchema = z.object({
   status: z.literal("PUBLISHED"), id: z.string(), slug: z.string(), shortCode: z.string(),

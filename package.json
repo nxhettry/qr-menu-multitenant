@@ -8,16 +8,18 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --test scripts/test-auth.mjs scripts/test-database.mjs scripts/test-public-menu.mjs scripts/test-editor.mjs",
+    "test": "node --test scripts/test-auth.mjs scripts/test-database.mjs scripts/test-public-menu.mjs scripts/test-editor.mjs scripts/test-menu-import.mjs",
     "check:public-menu": "node scripts/check-public-menu.mjs",
     "check:editor-browser": "node scripts/check-public-menu.mjs --browser",
-    "check:services": "node scripts/check-services.mjs"
+    "check:services": "node scripts/check-services.mjs",
+    "generate:menu-template": "node scripts/generate-menu-template.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "cloudinary": "^2.11.0",
+    "exceljs": "^4.4.0",
     "next": "16.4.2",
     "qrcode": "^1.5.4",
     "react": "19.3.0",
@@ -27,6 +29,11 @@
     "sharp": "^0.35.5",
     "swr": "^2.5.1",
     "zod": "^4.6.7"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.10",

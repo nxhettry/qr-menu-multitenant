@@ -35,7 +35,7 @@ test("owner editor transactions, publication, roles and asset isolation", async 
     create table auth.users(id uuid primary key,email_confirmed_at timestamptz);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth,public to anon,authenticated;`);
-  for (const file of ["202610160001_foundation.sql","202610160002_owner_editor.sql","202610160003_featured_menu.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),"utf8"));
+  for (const file of ["202610160001_foundation.sql","202610160002_owner_editor.sql","202610160003_featured_menu.sql","202610170001_bulk_menu.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),"utf8"));
   const ownerA=randomUUID(), ownerB=randomUUID(), editor=randomUUID();
   for (const id of [ownerA,ownerB,editor]) await db.query("insert into auth.users values($1,now())",[id]);
   async function asUser(id,fn) {

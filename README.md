@@ -16,6 +16,14 @@ npm.cmd run dev
 
 Open http://localhost:3000. The demo requires no cloud credentials.
 
+### Use cloud Auth from localhost
+
+Keep `NEXT_PUBLIC_SITE_URL=http://localhost:3000` in the ignored local `.env.local`. Use the existing cloud Supabase project URL and publishable key. To run the production build locally, run `npm run build`, then `npm run start` and open `http://localhost:3000`.
+
+In Supabase **Authentication → URL Configuration**, retain the hosted website's production **Site URL** and add `http://localhost:3000/**` to **Redirect URLs**, preserving existing entries. This permits local confirmation/recovery callbacks without changing the default destination for production users. If you use `127.0.0.1` instead, it needs its own redirect entry and matching local site URL. See [Supabase redirect URL guidance](https://supabase.com/docs/guides/auth/redirect-urls).
+
+Open confirmation/recovery links in the same browser and hostname that requested them so the PKCE verification cookie is available. Missing redirect entries affect email/OAuth callbacks; an ordinary email/password sign-in failure also needs its actual error investigated. Local development against this cloud project uses the same accounts and restaurant data; use a separate development project when testing destructive changes.
+
 | Route | Available now |
 | --- | --- |
 | `/` | Foundation landing page and build stages |
@@ -30,7 +38,7 @@ Open http://localhost:3000. The demo requires no cloud credentials.
 | `/dashboard/{restaurantId}` | Owner category/item/variant editing, settings, images, publishing, and restaurant switching |
 | `/dashboard/{restaurantId}/preview` | Private phone-sized preview of the saved menu |
 
-The sample restaurant and prices are illustrative. All three cloud migrations are applied, and the owner reports deployed login and restaurant creation working. Public menus read the safe Supabase projection. The owner editor, publishing controls, private preview, and Cloudinary uploads are implemented in the local source. Imports, QR print/download tools, and billing remain later phases. See [Phase 2 status](docs/PHASE-2-STATUS.md) and [Phase 3 status](docs/PHASE-3-STATUS.md).
+The sample restaurant and prices are illustrative. All four cloud migrations are applied, and the owner reports deployed login and restaurant creation working. Public menus read the safe Supabase projection. The owner editor, publishing controls, private preview, and Cloudinary uploads are implemented in the local source. Excel/CSV import, subcategories, rich item details and menu display controls are implemented locally, with the bulk-menu cloud migration applied as `20261017070556_bulk_menu`. Deploy the updated application source to expose the new controls on the hosted site. See [bulk import and display controls](docs/BULK-IMPORT.md), [Phase 2 status](docs/PHASE-2-STATUS.md), and [Phase 3 status](docs/PHASE-3-STATUS.md). QR print/download tools and billing remain later phases.
 
 ## Configure services for Phase 1
 
@@ -41,7 +49,7 @@ if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
 Edit `.env.local` locally; never commit or paste secrets into source. It is ignored by Git; `.env.example` is tracked.
 
 1. Create a development Supabase project. In its connection/API settings, copy the project URL and publishable key into `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-2. For a new project, apply the SQL files in `supabase/migrations` in filename order after inspecting its existing tables/migrations. All three are already applied to the currently configured Supabase project; do not apply them again there. Add `http://localhost:3000/auth/callback` to the auth redirect allowlist, configure the Auth Site URL, verify email/password settings, and configure SMTP for real users. Google OAuth is a later addition.
+2. For a new project, apply the SQL files in `supabase/migrations` in filename order after inspecting its existing tables/migrations. All four are already applied to the currently configured Supabase project; do not apply them again there. Add `http://localhost:3000/auth/callback` to the auth redirect allowlist, configure the Auth Site URL, verify email/password settings, and configure SMTP for real users. Google OAuth is a later addition.
 3. Create a Cloudinary environment. Set the public cloud name and the server-only API key/secret. The owner editor uploads through an authenticated server route; API secrets and upload signatures are never returned to the browser.
 4. Keep `NEXT_PUBLIC_SITE_URL=http://localhost:3000` locally. Use the canonical HTTPS production domain for customer QR generation later.
 

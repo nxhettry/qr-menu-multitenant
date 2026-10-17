@@ -1,18 +1,21 @@
 import { z } from "zod";
 import { restaurantSchema } from "../auth/schemas.ts";
+import { itemDetailsSchema, displayFieldSchema } from "../menu/details.ts";
 
 const optionalText = (max: number) => z.string().trim().max(max).nullable();
 const money = z.number().int().min(0).max(1000000000);
 const identity = { id: z.uuid().optional() };
-export const categoryInput = z.object({ ...identity, name: z.string().trim().min(1).max(100), name_ne: optionalText(100), is_visible: z.boolean() });
+export const categoryInput = z.object({ ...identity, parent_id: z.uuid().nullable().optional(), name: z.string().trim().min(1).max(100), name_ne: optionalText(100), is_visible: z.boolean() });
 export const variantInput = z.object({ name: z.string().trim().min(1).max(100), name_ne: optionalText(100), price_minor: money, is_available: z.boolean() });
-export const itemInput = z.object({
+const itemFieldsInput = z.object({
   ...identity, category_id: z.uuid(), name: z.string().trim().min(1).max(150), name_ne: optionalText(150),
   description: optionalText(1000), description_ne: optionalText(1000),
   price_minor: money.nullable(), variants: z.array(variantInput).max(30),
-  is_available: z.boolean(), is_featured: z.boolean().optional(), diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
+  is_available: z.boolean(), is_visible: z.boolean().optional(), details: itemDetailsSchema.optional(), is_featured: z.boolean().optional(), diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
   spice_level: z.number().int().min(0).max(3).nullable(), confirm_prices: z.boolean(),
-}).refine(item => item.variants.length ? item.price_minor === null : item.price_minor !== null, { message: "Enter one price or at least one variant." });
+});
+const validItemPrice = (item: { variants: unknown[]; price_minor: number | null }) => item.variants.length ? item.price_minor === null : item.price_minor !== null;
+export const itemInput = itemFieldsInput.refine(validItemPrice, { message: "Enter one price or at least one variant." });
 export const settingsInput = restaurantSchema.extend({
   name_ne: optionalText(100), description: optionalText(1000), phone: optionalText(30), address: optionalText(300),
   map_url: z.union([z.literal(""), z.url().max(1000).refine(value => {
@@ -23,6 +26,12 @@ export const settingsInput = restaurantSchema.extend({
   opening_hours: z.record(z.string().min(1).max(40), z.string().max(100)).refine(value => Object.keys(value).length <= 14),
 });
 export const editorMutation = z.discriminatedUnion("operation", [
+  z.object({ operation: z.literal("importItems"), payload: z.object({ request_id: z.uuid(), items: z.array(z.object({
+    category: z.string().trim().min(1).max(100), subcategory: z.string().trim().max(100),
+    item: itemFieldsInput.omit({ id: true, category_id: true }).refine(validItemPrice, { message: "Enter one price or at least one variant." }),
+  })).min(1).max(200) }) }),
+  z.object({ operation: z.literal("displaySettings"), payload: z.object({ hidden_fields: z.array(displayFieldSchema).max(11) }) }),
+  z.object({ operation: z.literal("itemVisibility"), payload: z.object({ id: z.uuid(), visible: z.boolean() }) }),
   z.object({ operation: z.literal("saveCategory"), payload: categoryInput }),
   z.object({ operation: z.literal("saveItem"), payload: itemInput }),
   z.object({ operation: z.literal("settings"), payload: settingsInput }),

@@ -4,6 +4,7 @@ import type { MenuItem } from "@/lib/menu/schema";
 import { formatPrice } from "@/lib/menu/presentation";
 import { MenuPhoto } from "./photo";
 import { MenuIcon } from "./icon";
+import { fieldVisible } from "@/lib/menu/visibility";
 
 export function SpecialsBanner({ specials, coverPublicId, coverVersion }: {
   specials: { item: MenuItem; categoryName: string }[]; coverPublicId: string | null; coverVersion: number | null;
@@ -15,7 +16,7 @@ export function SpecialsBanner({ specials, coverPublicId, coverVersion }: {
   const variantPrices = item?.variants.filter(variant => variant.isAvailable).map(variant => variant.priceMinor) ?? [];
   const price = item?.priceMinor ?? (variantPrices.length ? Math.min(...variantPrices) : null);
   return <section aria-label="Restaurant specials" className="relative isolate my-5 overflow-hidden rounded-[24px] bg-[#352418] text-white shadow-sm">
-    <MenuPhoto publicId={item?.imagePublicId ?? coverPublicId} version={item?.imageVersion ?? coverVersion} alt="" kind="hero" className="absolute inset-0 h-full w-full object-cover" />
+    {fieldVisible(item?.details, "photos") && <MenuPhoto publicId={item?.imagePublicId ?? coverPublicId} version={item?.imageVersion ?? coverVersion} alt="" kind="hero" className="absolute inset-0 h-full w-full object-cover" />}
     <div className="absolute inset-0 -z-0 bg-linear-to-r from-black/85 via-black/65 to-black/10" />
     <div className="relative z-10 flex min-h-[260px] flex-col items-start justify-center px-6 py-8 sm:min-h-[330px] sm:px-9">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300 sm:text-xs">{item ? "Our signature · " + special.categoryName : "Welcome to our table"}</p>

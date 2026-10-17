@@ -16,12 +16,14 @@ export async function getEditorData(context: TenantContext) {
 }
 
 export function requiresManagement(input: EditorMutation) {
-  return input.operation === "settings" || input.operation === "visibility" ||
+  return input.operation === "settings" || input.operation === "visibility" || input.operation === "displaySettings" ||
     (input.operation === "removeImage" && input.payload.kind !== "item");
 }
 
 const mutationReceipt = z.object({ slug: z.string().regex(/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/), previousSlug: z.string(), id: z.string().nullable().optional(), uploadId: z.uuid().optional(), publicId: z.string().optional() });
 const safeMessages = new Set([
+  "An item with this category and name already exists", "Import request changed. Choose the file again", "Use a top-level category as the parent",
+  "Remove or move subcategories first", "Add a visible item before publishing", "Invalid item details",
   "Choose up to six specials for your banner",
   "Confirm the example prices before saving", "Confirm every example price before publishing",
   "Add an item to a visible category before publishing", "Move or remove the items in this category first",

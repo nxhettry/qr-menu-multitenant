@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright-core";
+import { checkBulkMenuBrowser } from "./check-bulk-menu-browser.mjs";
 
 export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }) {
   const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? (process.platform === "win32" ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : undefined) });
@@ -134,6 +135,7 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "saved menu must fit a phone viewport");
     await mkdir("artifacts", { recursive: true });
     await page.screenshot({ path: "artifacts/owner-editor-mobile.png", fullPage: true });
+    await checkBulkMenuBrowser({ browser, page, base, restaurantId, save, errors });
 
     await page.goto(`${base}/dashboard/${draftId}`);
     await page.getByRole("heading", { name: "Secret Draft Name", exact: true }).waitFor();
