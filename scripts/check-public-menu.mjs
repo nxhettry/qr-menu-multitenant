@@ -143,8 +143,10 @@ try {
   assert(!live.body.includes("ILLUSTRATIVE PRICES"));
   assert(!live.body.includes("Other Kitchen"));
   const queryCount = calls.get("get_public_menu:live-kitchen");
+  const historyCount = calls.get("resolve_old_slug:live-kitchen");
   await page(base, "/live-kitchen");
   assert.equal(calls.get("get_public_menu:live-kitchen"), queryCount, "warm menu must reuse its cached projection");
+  assert.equal(calls.get("resolve_old_slug:live-kitchen"), historyCount, "warm scans must not query slug history again");
   assert((await page(base, "/other-kitchen")).body.includes("Other Kitchen"));
   console.log("PASS live menu, precise prices, sold-out labels, contact links, warm cache and tenant isolation");
 
@@ -158,35 +160,6 @@ try {
   assert(missing.response.status === 404 || missing.body.includes('name="robots" content="noindex"'));
   assert(missing.body.includes("Menu not found"));
   console.log("PASS draft/suspended privacy and unknown-menu handling");
-
-  const qrPath = `/q/${restaurant.short_code}`;
-  let qr = await page(base, qrPath);
-  assert.equal(qr.response.status, 302);
-  assert.equal(new URL(qr.response.headers.get("location"), base).pathname, "/live-kitchen");
-  assert(qr.response.headers.get("cache-control").includes("no-store"));
-  await db.query("update public.restaurants set slug='renamed-kitchen' where id=$1", [restaurant.id]);
-  qr = await page(base, qrPath);
-  assert.equal(new URL(qr.response.headers.get("location"), base).pathname, "/renamed-kitchen");
-  const old = await page(base, "/live-kitchen?from=old");
-  assert.equal(old.response.status, 301);
-  assert.equal(new URL(old.response.headers.get("location"), base).pathname, "/renamed-kitchen");
-  assert.equal(new URL(old.response.headers.get("location"), base).search, "?from=old");
-  assert(old.response.headers.get("cache-control").includes("no-store"));
-  assert((await page(base, "/renamed-kitchen")).body.includes("Test thali"));
-  const badCode = await page(base, "/q/invalid");
-  assert.equal(badCode.response.status, 404);
-  assert(badCode.response.headers.get("cache-control").includes("no-store"));
-  console.log("PASS immutable QR follows rename, historical URL returns explicit 301, missing QR returns 404");
-
-  outage = true;
-  for (const path of [qrPath, "/renamed-kitchen"]) {
-    const { response } = await page(base, path);
-    assert.equal(response.status, 503);
-    assert(response.headers.get("cache-control").includes("no-store"));
-  }
-  assert((await page(base, "/momo-house")).body.includes("ILLUSTRATIVE PRICES"));
-  console.log("PASS service failures return uncached 503; demo remains usable without the database");
-  outage = false;
 
   const privateHeaders = { cookie };
   const editorUrl = `${base}/api/dashboard/restaurants/${restaurant.id}/menu`;
@@ -215,6 +188,44 @@ try {
     assert.equal(response.status, 200, text.slice(-1500));
     return text;
   }
+
+  const qrPath = `/q/${restaurant.short_code}`;
+  let qr = await page(base, qrPath);
+  assert.equal(qr.response.status, 302);
+  assert.equal(new URL(qr.response.headers.get("location"), base).pathname, "/live-kitchen");
+  assert(qr.response.headers.get("cache-control").includes("no-store"));
+  const { restaurant: settings } = snapshot;
+  assert((await action(restaurant.id, "settings", { name: settings.name, slug: "renamed-kitchen", name_ne: settings.name_ne, description: settings.description, phone: settings.phone, address: settings.address, map_url: settings.map_url, theme_color: settings.theme_color, prices_include_vat: settings.prices_include_vat, vat_percent: settings.vat_percent, service_charge_percent: settings.service_charge_percent, opening_hours: settings.opening_hours })).includes("Saved."));
+  qr = await page(base, qrPath);
+  assert.equal(new URL(qr.response.headers.get("location"), base).pathname, "/renamed-kitchen");
+  const old = await page(base, "/live-kitchen?from=old");
+  assert.equal(old.response.status, 301);
+  assert.equal(new URL(old.response.headers.get("location"), base).pathname, "/renamed-kitchen");
+  assert.equal(new URL(old.response.headers.get("location"), base).search, "?from=old");
+  assert(old.response.headers.get("cache-control").includes("no-store"));
+  assert((await page(base, "/renamed-kitchen")).body.includes("Test thali"));
+  const badCode = await page(base, "/q/invalid");
+  assert.equal(badCode.response.status, 404);
+  assert(badCode.response.headers.get("cache-control").includes("no-store"));
+  console.log("PASS immutable QR follows rename, historical URL returns explicit 301, missing QR returns 404");
+
+  outage = true;
+  const qrOutage = await page(base, qrPath);
+  assert.equal(qrOutage.response.status, 503);
+  assert(qrOutage.response.headers.get("cache-control").includes("no-store"));
+  const warmOutage = await page(base, "/renamed-kitchen");
+  assert.equal(warmOutage.response.status, 200);
+  assert(warmOutage.body.includes("Test thali"), "a warm menu must keep serving from cache during a database outage");
+  const coldOutage = await page(base, "/never-seen-kitchen");
+  assert.equal(coldOutage.response.status, 503);
+  assert(coldOutage.response.headers.get("cache-control").includes("no-store"));
+  assert((await page(base, "/momo-house")).body.includes("ILLUSTRATIVE PRICES"));
+  console.log("PASS outages keep warm menus online, uncached lookups return 503; demo remains usable without the database");
+  outage = false;
+
+
+
+
   const item = snapshot.categories[0].items[0];
   const itemPayload = { id: item.id, category_id: category.id, name: item.name, name_ne: null, description: item.description, description_ne: null, price_minor: 18101, variants: [], is_available: true, diet: null, spice_level: null, confirm_prices: false };
   assert((await action(restaurant.id, "saveItem", itemPayload)).includes("Saved."));

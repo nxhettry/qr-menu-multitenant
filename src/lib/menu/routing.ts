@@ -22,3 +22,24 @@ export async function resolveOldSlug(slug: string) {
   const currentSlug = await resolveSlug("resolve_old_slug", { p_slug: slug });
   return currentSlug === slug ? null : currentSlug;
 }
+
+const HISTORY_TTL_MS = 60_000;
+const HISTORY_MAX_ENTRIES = 5_000;
+type HistoryEntry = { slug: string | null; expires: number };
+// Kept on globalThis so a rename handled by this process also clears what its proxy bundle remembered.
+const store = globalThis as typeof globalThis & { __menuSlugHistory?: Map<string, HistoryEntry> };
+const history = (store.__menuSlugHistory ??= new Map<string, HistoryEntry>());
+
+/** Per-instance memo so repeat scans skip the history query; other instances may lag a rename by up to the TTL. */
+export async function resolveOldSlugCached(slug: string) {
+  const hit = history.get(slug);
+  if (hit && hit.expires > Date.now()) return hit.slug;
+  const currentSlug = await resolveOldSlug(slug);
+  if (history.size >= HISTORY_MAX_ENTRIES) history.delete(history.keys().next().value!);
+  history.set(slug, { slug: currentSlug, expires: Date.now() + HISTORY_TTL_MS });
+  return currentSlug;
+}
+
+export function forgetSlugHistory(...slugs: string[]) {
+  for (const slug of slugs) history.delete(slug);
+}

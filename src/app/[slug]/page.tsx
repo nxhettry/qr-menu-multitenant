@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { connection } from "next/server";
 import { PublicMenu, UnavailableMenu } from "@/components/public-menu";
 import { DEMO_SLUG } from "@/lib/menu/demo";
 import { getPublicMenu } from "@/lib/menu/repository";
+import { resolveOldSlug } from "@/lib/menu/routing";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -28,7 +29,12 @@ async function MenuContent({ params }: Props) {
   await connection();
   const { slug } = await params;
   const menu = await getPublicMenu(slug);
-  if (!menu) notFound();
+  if (!menu) {
+    // Fallback for a proxy instance that has not yet seen a recent rename.
+    const currentSlug = await resolveOldSlug(slug).catch(() => null);
+    if (currentSlug) permanentRedirect(`/${currentSlug}`);
+    notFound();
+  }
   if (menu.status === "UNAVAILABLE") return <UnavailableMenu />;
   return <PublicMenu menu={menu} isDemo={slug === DEMO_SLUG} />;
 }
