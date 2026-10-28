@@ -66,7 +66,7 @@ test("bulk menu migration enforces hierarchy, visibility, atomicity, idempotency
     create table auth.users(id uuid primary key,email_confirmed_at timestamptz);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth,public to anon,authenticated;`);
-  for (const file of ["202610160001_foundation.sql", "202610160002_owner_editor.sql", "202610160003_featured_menu.sql", "202610170001_bulk_menu.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"));
+  for (const file of ["202610160001_foundation.sql", "202610160002_owner_editor.sql", "202610160003_featured_menu.sql", "202610170001_bulk_menu.sql","202610280001_slug_availability.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"));
   const owner = randomUUID(), other = randomUUID(), editor = randomUUID();
   for (const id of [owner, other, editor]) await db.query("insert into auth.users values($1,now())", [id]);
   async function scalar(sql, args = []) { return Object.values((await db.query(sql, args)).rows[0])[0]; }

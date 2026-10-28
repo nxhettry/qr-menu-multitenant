@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type DragEvent } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { EditorCategory, EditorData, EditorItem } from "@/lib/editor/data";
@@ -12,6 +12,7 @@ import { ImageUploader } from "./image-uploader";
 import { cardClass, checkboxClass, dangerClass, darkClass, iconClass, noticeClass, primaryClass, secondaryClass } from "@/components/ui/form";
 import { categoryLabel, orderedCategories } from "@/lib/editor/categories";
 import { MenuDisplayForm } from "./menu-display-form";
+import { QrPanel } from "./qr-panel";
 
 const BulkImport = dynamic(() => import("./bulk-import").then(module => module.BulkImport), { loading: () => <p role="status" className="text-sm text-ink-muted">Loading import tools…</p> });
 
@@ -23,11 +24,16 @@ function dragEntry(event: DragEvent, kind: "category" | "item", id: string, cate
   event.dataTransfer.effectAllowed = "move";
 }
 
-export function MenuEditor({ userId, restaurantId, initialData, canEdit, canManage }: {
-  userId: string; restaurantId: string; initialData: EditorData; canEdit: boolean; canManage: boolean;
+export function MenuEditor({ userId, restaurantId, initialData, canEdit, canManage, siteOrigin }: {
+  userId: string; restaurantId: string; initialData: EditorData; canEdit: boolean; canManage: boolean; siteOrigin: string;
 }) {
   const { data, error, pending, result, save, refresh, isValidating } = useMenuEditor(userId, restaurantId, initialData);
-  const [tab, setTab] = useState<"menu" | "settings" | "import" | "display">("menu");
+  const [tab, setTab] = useState<"menu" | "settings" | "import" | "display" | "qr">("menu");
+  const tabsRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const active = tabsRef.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (active && tabsRef.current) tabsRef.current.scrollTo({ left: active.offsetLeft - 16, behavior: "smooth" });
+  }, [tab]);
   const [editing, setEditing] = useState<Editing>(null);
   const [deleting, setDeleting] = useState<{ kind: "category" | "item"; id: string; name: string } | null>(null);
   const [unpublishing, setUnpublishing] = useState(false);
@@ -74,6 +80,7 @@ export function MenuEditor({ userId, restaurantId, initialData, canEdit, canMana
       <div className="flex flex-wrap gap-2">
         <Link href={`/dashboard/${restaurantId}/preview`} target="_blank" className={secondaryClass}>Phone preview ↗</Link>
         {restaurant.status === "PUBLISHED" && <Link href={`/${restaurant.slug}`} target="_blank" className={secondaryClass}>View live ↗</Link>}
+        {restaurant.status === "PUBLISHED" && tab !== "qr" && <button onClick={() => setTab("qr")} className={secondaryClass}>Get QR code</button>}
         {canManage && <button disabled={pending} className={restaurant.status === "PUBLISHED" ? darkClass : primaryClass} onClick={() => restaurant.status === "PUBLISHED" ? setUnpublishing(true) : save({ operation: "visibility", payload: { published: true } })}>{pending ? "Saving…" : restaurant.status === "PUBLISHED" ? "Unpublish" : "Publish menu"}</button>}
       </div>
     </header>
@@ -82,8 +89,8 @@ export function MenuEditor({ userId, restaurantId, initialData, canEdit, canMana
     <div role={result.error ? "alert" : "status"} aria-live="polite" className={result.error ? `${noticeClass("danger")} sticky top-3 z-20 shadow-lift` : result.message || result.warning ? `${noticeClass("success")} sticky top-3 z-20 shadow-lift` : ""}>{result.error ?? result.warning ?? result.message}</div>
     {unpublishing && <div role="alert" className={noticeClass("warning")}><p>Hide this menu from guests? Your QR code will keep working and show an unavailable message until you publish again.</p><div className="mt-4 flex flex-wrap gap-3"><button disabled={pending} className={darkClass} onClick={() => save({ operation: "visibility", payload: { published: false } }, () => setUnpublishing(false))}>Unpublish menu</button><button disabled={pending} className={secondaryClass} onClick={() => setUnpublishing(false)}>Cancel</button></div></div>}
     {deleting && <div role="alert" className={noticeClass("danger")}><p className="break-words">Remove “{deleting.name}” from your menu?</p><div className="mt-4 flex flex-wrap gap-3"><button disabled={disabled} onClick={() => save({ operation: "delete", payload: { kind: deleting.kind, id: deleting.id } }, () => setDeleting(null))} className={dangerClass}>Remove {deleting.kind}</button><button disabled={pending} onClick={() => setDeleting(null)} className={secondaryClass}>Cancel</button></div></div>}
-    <nav aria-label="Restaurant workspace" className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"><div className="flex w-max gap-1 rounded-full border border-line bg-surface-muted p-1">{([['menu', 'Menu'], ['import', 'Bulk import'], ['display', 'Menu display'], ['settings', 'Settings & images']] as const).map(([value, label]) => <button key={value} aria-current={tab === value ? "page" : undefined} className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium transition-colors ${tab === value ? "bg-surface text-ink shadow-card" : "text-ink-muted hover:text-ink"}`} onClick={() => setTab(value)}>{label}</button>)}</div></nav>
-    {tab === "import" ? <BulkImport categories={categories} pending={pending} disabled={!canEdit} onImport={save} /> : tab === "display" ? <MenuDisplayForm key={`${restaurant.id}-${restaurant.hidden_fields.join(',')}`} initialHiddenFields={restaurant.hidden_fields} pending={pending} disabled={!canManage} onSave={hidden_fields => save({ operation: "displaySettings", payload: { hidden_fields } })} /> : tab === "settings" ? <div className="space-y-6">
+    <nav ref={tabsRef} aria-label="Restaurant workspace" className="relative -mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"><div className="flex w-max gap-1 rounded-full border border-line bg-surface-muted p-1">{([['menu', 'Menu'], ['import', 'Bulk import'], ['display', 'Menu display'], ['settings', 'Settings & images'], ['qr', 'QR code']] as const).map(([value, label]) => <button key={value} aria-current={tab === value ? "page" : undefined} className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium transition-colors ${tab === value ? "bg-surface text-ink shadow-card" : "text-ink-muted hover:text-ink"}`} onClick={() => setTab(value)}>{label}</button>)}</div></nav>
+    {tab === "qr" ? <QrPanel restaurantId={restaurantId} slug={restaurant.slug} shortCode={restaurant.short_code} published={restaurant.status === "PUBLISHED"} siteOrigin={siteOrigin} /> : tab === "import" ? <BulkImport categories={categories} pending={pending} disabled={!canEdit} onImport={save} /> : tab === "display" ? <MenuDisplayForm key={`${restaurant.id}-${restaurant.hidden_fields.join(',')}`} initialHiddenFields={restaurant.hidden_fields} pending={pending} disabled={!canManage} onSave={hidden_fields => save({ operation: "displaySettings", payload: { hidden_fields } })} /> : tab === "settings" ? <div className="space-y-6">
       {!canManage && <p className="text-sm text-ink-muted">Only owners and managers can change restaurant settings.</p>}
       <SettingsForm key={restaurant.id} restaurant={restaurant} pending={pending} disabled={!canManage} onSave={payload => save({ operation: "settings", payload })} />
       <div className="grid gap-5 sm:grid-cols-2">{image("logo", restaurant.logo_public_id, restaurant.logo_version)}{image("cover", restaurant.cover_public_id, restaurant.cover_version)}</div>

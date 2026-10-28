@@ -35,7 +35,7 @@ test("owner editor transactions, publication, roles and asset isolation", async 
     create table auth.users(id uuid primary key,email_confirmed_at timestamptz);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth,public to anon,authenticated;`);
-  for (const file of ["202610160001_foundation.sql","202610160002_owner_editor.sql","202610160003_featured_menu.sql","202610170001_bulk_menu.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),"utf8"));
+  for (const file of ["202610160001_foundation.sql","202610160002_owner_editor.sql","202610160003_featured_menu.sql","202610170001_bulk_menu.sql","202610280001_slug_availability.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),"utf8"));
   const ownerA=randomUUID(), ownerB=randomUUID(), editor=randomUUID();
   for (const id of [ownerA,ownerB,editor]) await db.query("insert into auth.users values($1,now())",[id]);
   async function asUser(id,fn) {
@@ -46,6 +46,12 @@ test("owner editor transactions, publication, roles and asset isolation", async 
   async function scalar(sql,args=[]) {return Object.values((await db.query(sql,args)).rows[0])[0];}
   const tenantA=await asUser(ownerA,()=>scalar("select public.create_restaurant('Kitchen A','editor-alpha')"));
   const tenantB=await asUser(ownerB,()=>scalar("select public.create_restaurant('Kitchen B','editor-beta')"));
+  const available=(user,slug)=>asUser(user,()=>scalar("select public.slug_available($1)",[slug]));
+  assert.equal(await available(ownerA,"editor-gamma"),true);
+  assert.equal(await available(ownerA,"editor-alpha"),false);
+  assert.equal(await available(ownerA,"dashboard"),false);
+  assert.equal(await available(ownerA,"Bad Slug"),false);
+  await assert.rejects(available(null,"editor-gamma"),error=>error.code==="42501");
   await db.query("insert into public.memberships values($1,$2,'EDITOR',now())",[editor,tenantA]);
   const mutate=(user,tenant,operation,payload)=>asUser(user,()=>scalar("select public.mutate_menu($1,$2,$3::jsonb)",[tenant,operation,JSON.stringify(payload)]));
   const category=(name,id)=>({id,name,name_ne:null,is_visible:true});

@@ -125,6 +125,38 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     const preview = await previewOpened;
     await preview.getByRole("heading", { name: "Phone momo", exact: true, level: 3 }).waitFor();
     await preview.close();
+    await page.getByRole("button", { name: "Get QR code", exact: true }).click();
+    await page.getByRole("heading", { name: "Your QR code", exact: true }).waitFor();
+    const qrTab = page.getByRole("navigation", { name: "Restaurant workspace" }).getByRole("button", { name: "QR code", exact: true });
+    assert.equal(await qrTab.getAttribute("aria-current"), "page");
+    await qrTab.evaluate(node => new Promise(resolve => {
+      const settled = () => getComputedStyle(node).backgroundColor === "rgb(255, 255, 255)" ? resolve() : requestAnimationFrame(settled);
+      settled();
+    }));
+    const qrImage = page.getByRole("img", { name: /^QR code linking to / });
+    await qrImage.waitFor();
+    assert(await qrImage.evaluate(image => image.decode().then(() => true, () => false)), "QR preview must load");
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "QR tab must fit a phone viewport");
+    await page.screenshot({ path: "artifacts/qr-tab-mobile.png", fullPage: true });
+    for (const layout of ["cards", "poster"]) {
+      const sheet = await context.newPage();
+      await sheet.goto(`${base}/dashboard/${restaurantId}/print?layout=${layout}`);
+      await sheet.getByRole("button", { name: "Print", exact: true }).waitFor();
+      await sheet.screenshot({ path: `artifacts/qr-print-${layout}.png`, fullPage: true });
+      await sheet.emulateMedia({ media: "print" });
+      await sheet.screenshot({ path: `artifacts/qr-print-${layout}-print.png`, fullPage: true });
+      await sheet.close();
+    }
+    const onboarding = await context.newPage();
+    await onboarding.goto(`${base}/onboarding`);
+    await onboarding.getByLabel("Restaurant name", { exact: true }).fill("Café Déjà Vu & Bar");
+    assert.equal(await onboarding.getByRole("textbox", { name: "Your menu address" }).inputValue(), "cafe-deja-vu-and-bar");
+    await onboarding.getByText(/cafe-deja-vu-and-bar is available$/).waitFor();
+    await onboarding.getByRole("textbox", { name: "Your menu address" }).fill("browser-kitchen");
+    await onboarding.getByText("That address is taken. Try adding your area, like browser-kitchen-thamel.", { exact: true }).waitFor();
+    assert(await onboarding.getByRole("button", { name: "Create restaurant", exact: true }).isDisabled());
+    await onboarding.screenshot({ path: "artifacts/onboarding-address-mobile.png", fullPage: true });
+    await onboarding.close();
     await page.getByRole("button", { name: "Unpublish", exact: true }).click();
     await save(page.getByRole("button", { name: "Unpublish menu", exact: true }));
     assert((await (await fetch(`${base}/browser-kitchen`)).text()).includes("isn’t available right now"));
@@ -146,6 +178,6 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     await page.waitForURL("**/login");
     assert.equal(await page.getByRole("heading", { name: "Browser Kitchen", exact: true }).count(), 0);
     assert.deepEqual(errors, [], "browser must not report unhandled errors");
-    console.log("PASS mobile browser category/item/variant forms, reordering, image validation, settings/rename, preview, publishing, tenant switch and logout");
+    console.log("PASS mobile browser category/item/variant forms, reordering, image validation, settings/rename, preview, QR tab and print sheets, address suggestions, publishing, tenant switch and logout");
   } finally { await browser.close(); }
 }

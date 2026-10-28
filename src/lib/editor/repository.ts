@@ -15,6 +15,13 @@ export async function getEditorData(context: TenantContext) {
   return editorDataSchema.parse(data);
 }
 
+export async function getRestaurantLink(context: TenantContext) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("restaurants").select("slug,short_code").eq("id", context.restaurantId).single();
+  if (error || !data) throw new MenuEditError("We couldn’t load your menu link. Please try again.");
+  return z.object({ slug: z.string(), short_code: z.string().regex(/^[A-Za-z0-9_-]{7}$/) }).parse(data);
+}
+
 export function requiresManagement(input: EditorMutation) {
   return input.operation === "settings" || input.operation === "visibility" || input.operation === "displaySettings" ||
     (input.operation === "removeImage" && input.payload.kind !== "item");

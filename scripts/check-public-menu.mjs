@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { once } from "node:events";
 import { spawn } from "node:child_process";
+import QRCode from "qrcode";
 import { readFile } from "node:fs/promises";
 import { gzipSync } from "node:zlib";
 import { randomUUID } from "node:crypto";
@@ -45,6 +46,7 @@ try {
   await db.exec(await readFile(new URL("../supabase/migrations/202610160002_owner_editor.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610160003_featured_menu.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610170001_bulk_menu.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202610280001_slug_availability.sql", import.meta.url), "utf8"));
   const { rows: [restaurant] } = await db.query("insert into public.restaurants(name,slug,status,phone,map_url,vat_percent,prices_include_vat) values('Live Kitchen','live-kitchen','PUBLISHED','+977 9801234567','https://maps.google.com/?q=Kathmandu',13,true) returning id,short_code");
   const { rows: [category] } = await db.query("insert into public.menu_categories(restaurant_id,name) values($1,'Lunch') returning id", [restaurant.id]);
   await db.query("insert into public.menu_items(restaurant_id,category_id,name,description,price_minor,is_available) values($1,$2,'Test thali','A fresh seasonal lunch.',18005,false)", [restaurant.id, category.id]);
@@ -75,7 +77,7 @@ try {
       }
       assert(request.headers.authorization === `Bearer ${publicKey}` || authenticated);
       const functionName = request.url.split("?")[0].split("/").at(-1);
-      const tables = { memberships: ["restaurant_id", "user_id", "role", "created_at"], restaurants: ["id", "name", "slug", "status", "deleted_at", "created_at"], subscriptions: ["restaurant_id", "editing_locked_at"] };
+      const tables = { memberships: ["restaurant_id", "user_id", "role", "created_at"], restaurants: ["id", "name", "slug", "short_code", "status", "deleted_at", "created_at"], subscriptions: ["restaurant_id", "editing_locked_at"] };
       if (request.method === "GET" && Object.hasOwn(tables, functionName)) {
         const query = new URL(request.url, "http://localhost").searchParams;
         const columns = query.get("select").split(",");
@@ -100,7 +102,7 @@ try {
         response.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(result));
         return;
       }
-      assert(["get_public_menu", "resolve_menu_code", "resolve_old_slug", "get_editor_menu", "mutate_menu"].includes(functionName));
+      assert(["get_public_menu", "resolve_menu_code", "resolve_old_slug", "get_editor_menu", "mutate_menu", "slug_available"].includes(functionName));
       let body = "";
       for await (const chunk of request) body += chunk;
       const args = JSON.parse(body);
@@ -178,6 +180,33 @@ try {
   assert((await preview.text()).includes("Only signed-in restaurant members"));
   assert(preview.headers.get("cache-control").includes("no-store"));
   console.log("PASS authenticated workspace, isolated SWR endpoint, private draft preview and cross-tenant 404");
+
+  const siteOrigin = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? (await readFile(".env", "utf8")).match(/^NEXT_PUBLIC_SITE_URL=(.+)$/m)[1].trim()).origin;
+  const qrBase = `${base}/api/dashboard/restaurants/${restaurant.id}/qr`;
+  const svg = await fetch(qrBase, { headers: privateHeaders });
+  assert.equal(svg.status, 200);
+  assert(svg.headers.get("content-type").startsWith("image/svg+xml"));
+  assert(svg.headers.get("cache-control").includes("no-store"));
+  assert.equal(await svg.text(), await QRCode.toString(`${siteOrigin}/q/${restaurant.short_code}`, { errorCorrectionLevel: "M", margin: 2, type: "svg", color: { dark: "#111111", light: "#ffffff" } }), "QR must encode the permanent short link on the site origin");
+  const png = await fetch(`${qrBase}?format=png&download=1`, { headers: privateHeaders });
+  assert.equal(png.headers.get("content-type"), "image/png");
+  assert.equal(png.headers.get("content-disposition"), 'attachment; filename="live-kitchen-qr.png"');
+  assert.deepEqual([...new Uint8Array(await png.arrayBuffer()).slice(0, 4)], [0x89, 0x50, 0x4e, 0x47]);
+  assert.equal((await fetch(qrBase)).status, 401);
+  assert.equal((await fetch(`${base}/api/dashboard/restaurants/${otherId}/qr`, { headers: privateHeaders })).status, 404);
+  for (const layout of ["cards", "poster"]) {
+    const sheet = await fetch(`${base}/dashboard/${restaurant.id}/print?layout=${layout}`, { headers: privateHeaders });
+    const sheetBody = await sheet.text();
+    assert(sheetBody.includes("Scan to view our menu") && sheetBody.includes(`/q/${restaurant.short_code}`) && sheetBody.includes("Live Kitchen"), layout);
+    assert.equal((sheetBody.match(/<svg[^>]*viewBox/g) ?? []).length, layout === "cards" ? 4 : 1, layout);
+    assert(sheet.headers.get("cache-control").includes("no-store"));
+  }
+  const availability = async slug => (await (await fetch(`${base}/api/dashboard/slug-availability?slug=${slug}`, { headers: privateHeaders })).json()).available;
+  assert.equal(await availability("brand-new-kitchen"), true);
+  assert.equal(await availability("live-kitchen"), false);
+  assert.equal(await availability("dashboard"), false);
+  assert.equal((await fetch(`${base}/api/dashboard/slug-availability?slug=brand-new-kitchen`)).status, 401);
+  console.log("PASS QR codes encode the permanent short link; PNG/SVG downloads, print sheets and address checks are private and tenant-scoped");
 
   const manifest = JSON.parse(await readFile(".next/server/server-reference-manifest.json", "utf8"));
   const [actionId] = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "mutateEditorAction") ?? [];

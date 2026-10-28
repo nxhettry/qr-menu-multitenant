@@ -4,6 +4,7 @@ import { publicMenuSchema } from "../src/lib/menu/schema.ts";
 import { demoMenu } from "../src/lib/menu/demo.ts";
 import { accessibleAccent, accessibleAccentDark, cloudinaryImageUrl, formatPrice, openingHoursEntries, phoneHref, safeMapUrl } from "../src/lib/menu/presentation.ts";
 import { filterMenu, indexMenu, itemAvailable } from "../src/lib/menu/filter.ts";
+import { isRestaurantSlug, suggestSlug } from "../src/lib/menu/slugs.ts";
 
 test("menu search matches dish/category names, Nepali and variants, and combines with category selection", () => {
   const index = indexMenu(demoMenu.categories);
@@ -57,4 +58,13 @@ test("menu presentation preserves paisa precision and bounds unstructured openin
   assert.equal(formatPrice(18005), "Rs 180.05");
   assert.equal(formatPrice(0), "Rs 0");
   assert.deepEqual(openingHoursEntries({ Monday: "09:00–21:00", Tuesday: { bad: "data" }, Wednesday: "x".repeat(101) }), [["Monday", "09:00–21:00"]]);
+});
+
+test("menu address suggestions are valid, unreserved slugs", () => {
+  assert.equal(suggestSlug("Café Déjà Vu & Bar"), "cafe-deja-vu-and-bar");
+  assert.equal(suggestSlug("Dashboard"), "dashboard-menu");
+  assert.equal(suggestSlug("Q"), "q-menu");
+  assert.equal(suggestSlug("म:म: हाउस"), "");
+  const long = suggestSlug("The Best Thakali Kitchen of Kathmandu Valley Since 1990");
+  assert(long.length <= 40 && isRestaurantSlug(long), long);
 });
