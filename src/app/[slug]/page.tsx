@@ -34,5 +34,5 @@ async function MenuContent({ params }: Props) {
 }
 
 export default function MenuPage({ params }: Props) {
-  return <Suspense fallback={<p role="status" className="p-10 text-center">Loading menu…</p>}><MenuContent params={params} /></Suspense>;
+  return <Suspense fallback={<p role="status" className="p-10 text-center text-sm text-ink-muted">Loading menu…</p>}><MenuContent params={params} /></Suspense>;
 }

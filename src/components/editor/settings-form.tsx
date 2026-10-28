@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { EditorRestaurant } from "@/lib/editor/data";
 import { settingsInput, type SettingsInput } from "@/lib/editor/schemas";
-import { Field, FormError, inputClass, primaryClass } from "./form-fields";
+import { Field, FormError, cardClass, inputClass, primaryClass } from "@/components/ui/form";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -19,17 +19,17 @@ export function SettingsForm({ restaurant, pending, disabled, onSave }: {
     },
   });
   const errorMessage = Object.values(errors)[0]?.message;
-  return <form onSubmit={handleSubmit(onSave)} className="space-y-6 rounded-2xl border border-stone-200 bg-white p-5 sm:p-7">
-    <h2 className="font-serif text-2xl">Restaurant settings</h2>
+  return <form onSubmit={handleSubmit(onSave)} className={`${cardClass} space-y-6 p-5 sm:p-7`}>
+    <h2 className="text-2xl font-semibold tracking-tight">Restaurant settings</h2>
     <fieldset disabled={disabled || pending} className="space-y-5">
       <Field label="Restaurant name"><input {...register("name")} className={inputClass} maxLength={100} required /></Field>
       <Field label="Nepali name (optional)"><input {...register("name_ne")} lang="ne" className={inputClass} maxLength={100} /></Field>
-      <Field label="Menu address"><input {...register("slug")} className={inputClass} autoCapitalize="none" spellCheck={false} minLength={3} maxLength={40} required /><span className="mt-2 block text-xs font-normal leading-5 text-stone-600">Printed QR codes keep working after a rename. Previous addresses stay reserved for you.</span></Field>
+      <Field label="Menu address"><input {...register("slug")} className={inputClass} autoCapitalize="none" spellCheck={false} minLength={3} maxLength={40} required /><span className="mt-2 block text-xs font-normal leading-5 text-ink-muted">Printed QR codes keep working after a rename. Previous addresses stay reserved for you.</span></Field>
       <Field label="Description"><textarea {...register("description")} className={inputClass} rows={3} maxLength={1000} /></Field>
       <Field label="Phone"><input {...register("phone")} type="tel" className={inputClass} maxLength={30} /></Field>
       <Field label="Address"><input {...register("address")} className={inputClass} maxLength={300} /></Field>
       <Field label="Map link (HTTPS)"><input {...register("map_url")} type="url" placeholder="https://maps.google.com/…" className={inputClass} maxLength={1000} /></Field>
-      <Field label="Theme color"><input {...register("theme_color")} type="color" className="mt-2 block h-12 w-24 rounded-lg border border-stone-300 bg-white p-1" /><span className="mt-2 block text-xs font-normal text-stone-600">Menu text is adjusted automatically for readable contrast.</span></Field>
+      <Field label="Theme color"><input {...register("theme_color")} type="color" className="mt-2 block h-12 w-24 rounded-lg border border-line-strong bg-surface p-1" /><span className="mt-2 block text-xs font-normal text-ink-muted">Menu text is adjusted automatically for readable contrast.</span></Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="VAT (%)"><input {...register("vat_percent", { valueAsNumber: true })} type="number" min={0} max={100} step="0.01" className={inputClass} required /></Field>
         <Field label="Service charge (%)"><input {...register("service_charge_percent", { valueAsNumber: true })} type="number" min={0} max={100} step="0.01" className={inputClass} required /></Field>

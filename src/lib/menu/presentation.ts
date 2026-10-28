@@ -16,18 +16,31 @@ export function phoneHref(value: string | null) {
   return /^\+?\d{5,15}$/.test(number) ? `tel:${number}` : null;
 }
 
+const luminance = (rgb: number[]) => rgb.reduce((sum, channel, index) => {
+  const srgb = channel / 255;
+  return sum + (srgb <= 0.04045 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4) * [0.2126, 0.7152, 0.0722][index];
+}, 0);
+const toHex = (rgb: number[]) => `#${rgb.map(channel => channel.toString(16).padStart(2, "0")).join("")}`;
+const parseHex = (value: string) => /^#[0-9a-f]{6}$/i.test(value) ? [1, 3, 5].map(index => parseInt(value.slice(index, index + 2), 16)) : null;
+
 export function accessibleAccent(value: string) {
-  if (!/^#[0-9a-f]{6}$/i.test(value)) return "#9a3412";
-  let channels = [1, 3, 5].map(index => parseInt(value.slice(index, index + 2), 16));
-  const luminance = (rgb: number[]) => rgb.reduce((sum, channel, index) => {
-    const srgb = channel / 255;
-    return sum + (srgb <= 0.04045 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4) * [0.2126, 0.7152, 0.0722][index];
-  }, 0);
+  let channels = parseHex(value);
+  if (!channels) return "#9a3412";
   const background = luminance([250, 248, 242]);
   while ((background + 0.05) / (luminance(channels) + 0.05) < 4.5) {
     channels = channels.map(channel => Math.floor(channel * 0.9));
   }
-  return `#${channels.map(channel => channel.toString(16).padStart(2, "0")).join("")}`;
+  return toHex(channels);
+}
+
+/** Lightens the restaurant colour until it reads on the dark menu surface (#161311). */
+export function accessibleAccentDark(value: string) {
+  let channels = parseHex(value) ?? [251, 138, 60];
+  const surface = luminance([22, 19, 17]);
+  while ((luminance(channels) + 0.05) / (surface + 0.05) < 4.5) {
+    channels = channels.map(channel => Math.min(255, Math.ceil(channel + (255 - channel) * 0.12) + 1));
+  }
+  return toHex(channels);
 }
 
 export function cloudinaryImageUrl(cloudName: string | undefined, publicId: string | null, version: number | null, width: number, height: number) {

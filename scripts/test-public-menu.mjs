@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { publicMenuSchema } from "../src/lib/menu/schema.ts";
 import { demoMenu } from "../src/lib/menu/demo.ts";
-import { accessibleAccent, cloudinaryImageUrl, formatPrice, openingHoursEntries, phoneHref, safeMapUrl } from "../src/lib/menu/presentation.ts";
+import { accessibleAccent, accessibleAccentDark, cloudinaryImageUrl, formatPrice, openingHoursEntries, phoneHref, safeMapUrl } from "../src/lib/menu/presentation.ts";
 import { filterMenu, indexMenu, itemAvailable } from "../src/lib/menu/filter.ts";
 
 test("menu search matches dish/category names, Nepali and variants, and combines with category selection", () => {
@@ -41,13 +41,14 @@ test("Cloudinary delivery requires a configured account, safe ID and immutable v
   assert.equal(cloudinaryImageUrl("demo", "food", 12, 99999, 240), null);
 });
 
-test("theme accents meet 4.5:1 contrast against the menu background", () => {
+test("theme accents meet 4.5:1 contrast against the light and dark menu backgrounds", () => {
   const luminance = hex => [1, 3, 5].reduce((sum, index, i) => {
     const c = parseInt(hex.slice(index, index + 2), 16) / 255;
     return sum + (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4) * [0.2126, 0.7152, 0.0722][i];
   }, 0);
   for (const color of ["#ffffff", "#ffff00", "#00ff00", "#ff0000", "#000000", "#9a3412", "invalid"]) {
     assert((luminance("#faf8f2") + 0.05) / (luminance(accessibleAccent(color)) + 0.05) >= 4.5, color);
+    assert((luminance(accessibleAccentDark(color)) + 0.05) / (luminance("#161311") + 0.05) >= 4.5, `${color} on dark`);
   }
 });
 

@@ -7,7 +7,7 @@ export function MenuImageDisplay({ src, srcSet, sizes, alt, width, height, class
 }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <span role={alt ? "img" : undefined} aria-label={alt ? `${alt} image unavailable` : undefined}
-    className={`${className} inline-block bg-stone-200`} style={{ aspectRatio: `${width}/${height}` }} />;
+    className={`${className} inline-block bg-surface-muted`} style={{ aspectRatio: `${width}/${height}` }} />;
   return <picture>
     {srcSet && <source srcSet={srcSet} sizes={sizes} />}
     <Image src={src} alt={alt} width={width} height={height} unoptimized loading={loading} className={className} onError={() => setFailed(true)} />

@@ -11,5 +11,5 @@ export function MenuPhoto({ publicId, version, alt, kind, className }: {
   const widths = kind === "hero" ? [320, 640, 1280] : kind === "logo" ? [96, 192] : [320, 640];
   const srcSet = widths.map(size => `${cloudinaryImageUrl(cloud, publicId, version, size, Math.round(size * height / width))} ${size}w`).join(", ");
   return <MenuImageDisplay key={src} src={src} srcSet={srcSet} alt={alt} width={width} height={height} className={className} loading={kind === "item" ? "lazy" : "eager"}
-    sizes={kind === "hero" ? "(max-width: 640px) calc(100vw - 32px), 864px" : kind === "logo" ? "64px" : "(max-width: 640px) calc((100vw - 44px) / 2), 280px"} />;
+    sizes={kind === "hero" ? "(max-width: 640px) calc(100vw - 32px), 864px" : kind === "logo" ? "72px" : "(max-width: 640px) calc((100vw - 44px) / 2), 280px"} />;
 }

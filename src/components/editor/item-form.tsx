@@ -2,7 +2,7 @@
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import type { EditorCategory, EditorItem } from "@/lib/editor/data";
 import { itemInput, parsePrice, priceInputValue, type ItemInput } from "@/lib/editor/schemas";
-import { Field, FormError, inputClass, primaryClass, secondaryClass } from "./form-fields";
+import { Field, FormError, eyebrowClass, inputClass, noticeClass, panelClass, primaryClass, secondaryClass } from "@/components/ui/form";
 import type { ItemFields } from "./item-form-values";
 import { ItemDetailFields } from "./item-detail-fields";
 import { categoryLabel, orderedCategories } from "@/lib/editor/categories";
@@ -41,19 +41,19 @@ export function ItemForm({ item, categoryId, categories, pending, onSave, onCanc
       onSave(parsed.data);
     } catch (error) { setError("root", { message: error instanceof Error ? error.message : "Check your menu item." }); }
   }
-  return <form onSubmit={handleSubmit(submit)} className="space-y-5 rounded-2xl border border-orange-200 bg-orange-50/50 p-5">
+  return <form onSubmit={handleSubmit(submit)} className={panelClass}>
     <h3 className="text-lg font-semibold">{item ? "Edit item" : "Add an item"}</h3>
     <fieldset disabled={pending} className="space-y-5">
-      <p className="text-xs font-semibold uppercase tracking-widest text-orange-800">Basic details</p>
+      <p className={eyebrowClass}>Basic details</p>
       <Field label="Category / subcategory"><select {...register("category_id")} className={inputClass}>{orderedCategories(categories).map(category => <option key={category.id} value={category.id}>{categoryLabel(category, categories)}</option>)}</select></Field>
       <Field label="Item name"><input {...register("name")} className={inputClass} maxLength={150} required autoFocus /></Field>
       <Field label="Nepali name (optional)"><input {...register("name_ne")} lang="ne" className={inputClass} maxLength={150} /></Field>
       <Field label="Description (optional)"><textarea {...register("description")} className={inputClass} rows={3} maxLength={1000} /></Field>
       <details className="text-sm"><summary className="cursor-pointer py-2">Nepali description</summary><textarea {...register("description_ne")} lang="ne" aria-label="Nepali description" className={inputClass} rows={3} maxLength={1000} /></details>
-      <p className="border-t border-orange-200 pt-5 text-xs font-semibold uppercase tracking-widest text-orange-800">Pricing & portions</p>
+      <p className={`border-t border-line pt-5 ${eyebrowClass}`}>Pricing & portions</p>
       <label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("uses_variants")} type="checkbox" className="h-5 w-5" />Use variants, such as Half / Full or Small / Large</label>
       {!usesVariants ? <Field label="Price (Rs)"><input {...register("price")} className={inputClass} inputMode="decimal" placeholder="180.00" required /></Field> : <div className="space-y-4">
-        {fields.map((field, index) => <div key={field.id} className="space-y-3 rounded-xl border border-stone-200 bg-white p-4">
+        {fields.map((field, index) => <div key={field.id} className="space-y-3 rounded-xl border border-line bg-surface p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Variant name"><input {...register(`variants.${index}.name`)} className={inputClass} maxLength={100} placeholder="Half plate" required /></Field>
             <Field label="Price (Rs)"><input {...register(`variants.${index}.price`)} className={inputClass} inputMode="decimal" placeholder="180.00" required /></Field>
@@ -63,19 +63,19 @@ export function ItemForm({ item, categoryId, categories, pending, onSave, onCanc
           <div className="flex flex-wrap gap-2"><button type="button" disabled={index === 0} onClick={() => move(index, index - 1)} className={secondaryClass} aria-label={`Move variant ${index + 1} up`}>↑</button><button type="button" disabled={index === fields.length - 1} onClick={() => move(index, index + 1)} className={secondaryClass} aria-label={`Move variant ${index + 1} down`}>↓</button><button type="button" onClick={() => remove(index)} className={secondaryClass}>Remove variant</button></div>
         </div>)}
         <button type="button" disabled={fields.length >= 30} onClick={() => append({ name: "", name_ne: "", price: "", is_available: true })} className={secondaryClass}>+ Add variant</button>
-        {!fields.length && <p className="text-sm text-stone-600">Add at least one variant and price.</p>}
+        {!fields.length && <p className="text-sm text-ink-muted">Add at least one variant and price.</p>}
       </div>}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Diet"><select {...register("diet")} className={inputClass}><option value="">Not specified</option><option value="VEG">Vegetarian</option><option value="NON_VEG">Non-vegetarian</option><option value="EGG">Contains egg</option></select></Field>
         <Field label="Spice level"><select {...register("spice_level")} className={inputClass}><option value="">Not specified</option><option value="0">No spice</option><option value="1">Mild</option><option value="2">Medium</option><option value="3">Hot</option></select></Field>
       </div>
       <label className="flex items-center gap-3 text-sm"><input {...register("is_available")} type="checkbox" className="h-5 w-5" />Available today</label>
-      <p className="border-t border-orange-200 pt-5 text-xs font-semibold uppercase tracking-widest text-orange-800">Labels & visibility</p>
+      <p className={`border-t border-line pt-5 ${eyebrowClass}`}>Labels & visibility</p>
       <label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("is_visible")} type="checkbox" className="h-5 w-5" />Show this item on the public menu</label>
       <div className="flex flex-wrap gap-x-6 gap-y-2"><label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("is_popular")} type="checkbox" className="h-5 w-5" />Popular item</label><label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("is_new")} type="checkbox" className="h-5 w-5" />New item</label></div>
-      <label className="flex items-start gap-3 rounded-xl bg-orange-100/60 p-4 text-sm"><input {...register("is_featured")} type="checkbox" className="mt-0.5 h-5 w-5" /><span>Feature in specials banner<span className="mt-1 block text-xs leading-5 text-stone-600">Choose up to six specials. Their names, prices, and item photos appear at the top of your public menu. Hidden categories and sold-out specials stay out of the banner.</span></span></label>
+      <label className="flex items-start gap-3 rounded-xl bg-brand-soft p-4 text-sm"><input {...register("is_featured")} type="checkbox" className="mt-0.5 h-5 w-5" /><span>Feature in specials banner<span className="mt-1 block text-xs leading-5 text-ink-muted">Choose up to six specials. Their names, prices, and item photos appear at the top of your public menu. Hidden categories and sold-out specials stay out of the banner.</span></span></label>
       <ItemDetailFields control={control} register={register} />
-      {item?.is_example_price && <label className="flex items-start gap-3 rounded-xl bg-amber-100 p-4 text-sm"><input {...register("confirm_prices")} type="checkbox" className="mt-1 h-5 w-5" required />I have checked every example price for this item and its variants.</label>}
+      {item?.is_example_price && <label className={`${noticeClass("warning")} flex items-start gap-3`}><input {...register("confirm_prices")} type="checkbox" className="mt-1 h-5 w-5" required />I have checked every example price for this item and its variants.</label>}
       <FormError message={errors.root?.message} />
       <div className="flex flex-wrap gap-3"><button disabled={pending} className={primaryClass}>{pending ? "Saving…" : "Save item"}</button><button type="button" onClick={onCancel} className={secondaryClass}>Cancel</button></div>
     </fieldset>
