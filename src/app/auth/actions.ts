@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { credentialsSchema, type FormState } from "@/lib/auth/schemas";
 import { getSiteOrigin } from "@/lib/env/server";
+import { authErrorMessage } from "@/lib/auth/errors";
 export async function login(_state: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.extend({ password: z.string().min(1).max(128) })
     .safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
@@ -22,7 +23,7 @@ export async function register(_state: FormState, form: FormData): Promise<FormS
   const { data, error } = await supabase.auth.signUp({ ...input.data,
     options: { emailRedirectTo: `${getSiteOrigin()}/auth/callback?next=/onboarding` },
   });
-  if (error) return { error: "Could not create the account. Please try again shortly." };
+  if (error) return { error: authErrorMessage("register", error, "Could not create the account. Please try again shortly.") };
   if (data.session) redirect("/onboarding");
   return { message: "Check your email for the confirmation link. If you already have an account, sign in or reset your password." };
 }
@@ -33,7 +34,7 @@ export async function requestPasswordReset(_state: FormState, form: FormData): P
   const { error } = await supabase.auth.resetPasswordForEmail(email.data, {
     redirectTo: `${getSiteOrigin()}/auth/callback?next=/reset-password`,
   });
-  if (error) return { error: "Could not request a reset. Please try again shortly." };
+  if (error) return { error: authErrorMessage("password-reset", error, "Could not request a reset. Please try again shortly.") };
   return { message: "If an account exists for that email, you’ll receive a password reset link." };
 }
 export async function resetPassword(_state: FormState, form: FormData): Promise<FormState> {
