@@ -1,5 +1,5 @@
 # QR Menu
-
+ 
 QR-menu SaaS foundation and owner-account setup for Nepali restaurants. Adapted from the supplied revised build plan to **Next.js App Router, Tailwind, Supabase, Cloudinary, SWR, and Vercel**.
 
 Start with [the phased build plan](docs/BUILD-PLAN.md) and [the caching contract](docs/CACHING.md).
