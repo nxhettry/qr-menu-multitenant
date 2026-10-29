@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --test scripts/test-auth.mjs scripts/test-database.mjs scripts/test-public-menu.mjs scripts/test-editor.mjs scripts/test-menu-import.mjs",
+    "test": "node --test scripts/test-auth.mjs scripts/test-database.mjs scripts/test-public-menu.mjs scripts/test-editor.mjs scripts/test-menu-import.mjs scripts/test-admin.mjs",
     "check:public-menu": "node scripts/check-public-menu.mjs",
     "check:editor-browser": "node scripts/check-public-menu.mjs --browser",
     "check:services": "node scripts/check-services.mjs",

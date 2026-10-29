@@ -29,7 +29,7 @@ async function PrintContent({ params, searchParams }: Props) {
   const shortUrl = menuQrUrl(getSiteOrigin(), restaurant.short_code);
   return <main className="mx-auto w-full max-w-4xl px-4 py-6 print:p-0">
     <div className="mb-6 space-y-4 print:hidden">
-      <Link href={`/dashboard/${restaurantId}`} className={`${linkClass} text-sm`}>← Back to editing</Link>
+      <Link href={context.actingAsAdmin ? `/admin/restaurants/${restaurantId}` : `/dashboard/${restaurantId}`} className={`${linkClass} text-sm`}>{context.actingAsAdmin ? "← Back to admin" : "← Back to editing"}</Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <nav aria-label="Print layout" className="flex gap-1 rounded-full border border-line bg-surface-muted p-1">
           {layouts.map(([value, label]) => <Link key={value} href={`?layout=${value}`} aria-current={layout === value ? "page" : undefined} className={`inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium ${layout === value ? "bg-surface text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}>{label}</Link>)}

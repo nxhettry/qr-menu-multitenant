@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { resolveMenuCode } from "@/lib/menu/routing";
+import { after, NextResponse } from "next/server";
+import { recordMenuScan, resolveMenuCode } from "@/lib/menu/routing";
 
 export async function GET(request: Request, { params }: { params: Promise<{ shortCode: string }> }) {
   const { shortCode } = await params;
@@ -15,6 +15,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ shor
       status: 404, headers: { "Cache-Control": "no-store", "Content-Type": "text/plain; charset=utf-8" },
     });
   }
+  after(() => recordMenuScan(shortCode));
   const response = NextResponse.redirect(new URL(`/${slug}`, request.url), 302);
   response.headers.set("Cache-Control", "no-store");
   return response;

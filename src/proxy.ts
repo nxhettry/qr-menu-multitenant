@@ -21,7 +21,7 @@ export async function proxy(request: NextRequest) {
     redirect.headers.set("Cache-Control", "no-store");
     return redirect;
   }
-  if (!/^\/(login|register|forgot-password|reset-password|auth|onboarding|dashboard|api\/dashboard)(\/|$)/.test(request.nextUrl.pathname)) {
+  if (!/^\/(login|register|forgot-password|reset-password|auth|onboarding|dashboard|admin|api\/dashboard|api\/admin)(\/|$)/.test(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
   let response = NextResponse.next({ request });
@@ -56,4 +56,5 @@ export const config = { matcher: [
   "/:slug",
   "/login", "/register", "/forgot-password", "/reset-password",
   "/auth/:path*", "/onboarding", "/dashboard/:path*", "/api/dashboard/:path*",
+  "/admin/:path*", "/api/admin/:path*",
 ] };

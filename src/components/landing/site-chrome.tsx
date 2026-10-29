@@ -25,6 +25,7 @@ export function SiteFooter() {
       <div><Logo /><p className="mt-3 max-w-xs text-sm leading-6 text-ink-muted">A free, phone-first digital menu for Nepal’s restaurants.</p></div>
       <div className="flex flex-col gap-3 text-sm sm:items-end">
         <div className="flex gap-5 font-medium text-ink-muted"><Link href="/momo-house" className="hover:text-ink">Example menu</Link><Link href="/login" className="hover:text-ink">Sign in</Link><Link href="/register" className="hover:text-ink">Get started</Link></div>
+        <div className="flex gap-5 text-ink-subtle"><Link href="/terms" className="hover:text-ink">Terms</Link><Link href="/privacy" className="hover:text-ink">Privacy</Link></div>
         <PoweredBy />
       </div>
     </div>

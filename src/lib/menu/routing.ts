@@ -17,6 +17,13 @@ export async function resolveMenuCode(code: string) {
   return resolveSlug("resolve_menu_code", { p_code: code });
 }
 
+/** Best-effort analytics; a failed count must never block the redirect. */
+export async function recordMenuScan(code: string) {
+  if (code === DEMO_SHORT_CODE) return;
+  const { error } = await createPublicClient().rpc("record_menu_scan", { p_code: code });
+  if (error) console.error("Could not record menu scan", { code: error.code });
+}
+
 export async function resolveOldSlug(slug: string) {
   if (!isRestaurantSlug(slug)) return null;
   const currentSlug = await resolveSlug("resolve_old_slug", { p_slug: slug });

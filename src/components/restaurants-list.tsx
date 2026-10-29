@@ -3,6 +3,7 @@ import useSWR from "swr";
 import Link from "next/link";
 import type { RestaurantSummary } from "@/lib/tenancy/restaurants";
 import { cardClass, darkClass, linkClass, noticeClass } from "./ui/form";
+import { StatusBadge } from "./ui/status-badge";
 
 export function RestaurantsList({ userId, initialData }: { userId: string; initialData: RestaurantSummary[] }) {
   const { data, error, isValidating, mutate } = useSWR<{ restaurants: RestaurantSummary[] }>(
@@ -14,7 +15,7 @@ export function RestaurantsList({ userId, initialData }: { userId: string; initi
     <div className="grid gap-4 sm:grid-cols-2">{data?.restaurants.map(restaurant => {
       const live = restaurant.status === "PUBLISHED";
       return <article key={restaurant.id} className={`${cardClass} flex flex-col p-6`}>
-        <span className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${live ? "bg-success-soft text-success" : "bg-surface-muted text-ink-muted"}`}><span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-success" : "bg-ink-subtle"}`} />{restaurant.status}</span>
+        <StatusBadge tone={restaurant.status} />
         <h2 className="mt-4 text-xl font-semibold tracking-tight">{restaurant.name}</h2>
         <p className="mt-1 text-sm text-ink-subtle">/{restaurant.slug}</p>
         <p className="mt-4 flex-1 text-sm leading-6 text-ink-muted">{live ? "Your menu is live. Saved edits appear for guests immediately." : "Add your categories and items, preview your menu, then publish when you’re ready."}</p>

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { credentialsSchema, type FormState } from "@/lib/auth/schemas";
 import { getSiteOrigin } from "@/lib/env/server";
 import { authErrorMessage } from "@/lib/auth/errors";
+import { TERMS_VERSION } from "@/lib/legal";
 export async function login(_state: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.extend({ password: z.string().min(1).max(128) })
     .safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
@@ -19,9 +20,10 @@ export async function login(_state: FormState, form: FormData): Promise<FormStat
 export async function register(_state: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
   if (!input.success) return { error: "Enter a valid email and a password of 8–128 characters." };
+  if (form.get("acceptTerms") !== "on") return { error: "Please accept the Terms of Service and Privacy Policy to continue." };
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ ...input.data,
-    options: { emailRedirectTo: `${getSiteOrigin()}/auth/callback?next=/onboarding` },
+    options: { emailRedirectTo: `${getSiteOrigin()}/auth/callback?next=/onboarding`, data: { terms_version: TERMS_VERSION } },
   });
   if (error) return { error: authErrorMessage("register", error, "Could not create the account. Please try again shortly.") };
   if (data.session) redirect("/onboarding");

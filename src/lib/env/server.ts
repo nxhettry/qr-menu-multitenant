@@ -9,3 +9,11 @@ export function getSiteOrigin() {
   }
   return url.origin;
 }
+
+export function getSupabaseSecretKey() {
+  return z.string().min(1).refine(value => {
+    if (value.startsWith("sb_secret_")) return true;
+    try { return JSON.parse(atob(value.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).role === "service_role"; }
+    catch { return false; }
+  }, "Use the Supabase secret (service role) key").parse(process.env.SUPABASE_SECRET_KEY);
+}
