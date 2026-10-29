@@ -7,6 +7,8 @@ const poppins = Poppins({ subsets: ["latin", "devanagari"], weight: ["400", "500
 export const metadata: Metadata = {
   title: "QR Menu — a free digital menu for every table",
   description: "A fast, phone-friendly QR menu for Nepal’s restaurants. Free, powered by RestroFuel.",
+  applicationName: "QR Menu",
+  appleWebApp: { capable: true, title: "QR Menu", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

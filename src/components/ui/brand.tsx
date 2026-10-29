@@ -1,15 +1,16 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { eyebrowClass } from "./form";
 
 export const RESTROFUEL_URL = "https://restrofuel.kree.com.np";
 
 export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
-  return <span aria-hidden="true" className={`inline-flex shrink-0 items-center justify-center rounded-[10px] bg-brand text-on-brand ${className}`}>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-[58%] w-[58%]">
-      <path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4" /><path d="M9 12h6" />
-    </svg>
-  </span>;
+  return <Image src="/icons/icon-192.png" alt="" aria-hidden="true" width={192} height={192} loading="eager" className={`shrink-0 ${className}`} />;
+}
+
+export function LogoLockup({ className = "h-12 w-auto" }: { className?: string }) {
+  return <Image src="/qr-menu-logo.png" alt="RestroFuel QR Menu" width={1860} height={644} className={className} />;
 }
 
 export function Logo({ href = "/" }: { href?: string }) {

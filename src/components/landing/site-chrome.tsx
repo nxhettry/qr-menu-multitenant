@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Logo, PoweredBy } from "@/components/ui/brand";
+import { Logo, LogoLockup, PoweredBy } from "@/components/ui/brand";
 import { primaryClass } from "@/components/ui/form";
 
 const navLinks = [["#features", "Features"], ["#how-it-works", "How it works"], ["/momo-house", "Example menu"]] as const;
@@ -22,7 +22,7 @@ export function SiteNav() {
 export function SiteFooter() {
   return <footer className="border-t border-line">
     <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-      <div><Logo /><p className="mt-3 max-w-xs text-sm leading-6 text-ink-muted">A free, phone-first digital menu for Nepal’s restaurants.</p></div>
+      <div><Link href="/" aria-label="QR Menu home" className="inline-block"><LogoLockup className="h-14 w-auto sm:h-16" /></Link><p className="mt-3 max-w-xs text-sm leading-6 text-ink-muted">A free, phone-first digital menu for Nepal’s restaurants.</p></div>
       <div className="flex flex-col gap-3 text-sm sm:items-end">
         <div className="flex gap-5 font-medium text-ink-muted"><Link href="/momo-house" className="hover:text-ink">Example menu</Link><Link href="/login" className="hover:text-ink">Sign in</Link><Link href="/register" className="hover:text-ink">Get started</Link></div>
         <div className="flex gap-5 text-ink-subtle"><Link href="/terms" className="hover:text-ink">Terms</Link><Link href="/privacy" className="hover:text-ink">Privacy</Link></div>
