@@ -12,7 +12,6 @@ export const darkClass = `${buttonBase} bg-ink px-6 py-3 text-canvas hover:opaci
 export const linkClass = "font-semibold text-brand underline-offset-4 hover:underline";
 export const cardClass = "rounded-2xl border border-line bg-surface shadow-card";
 export const eyebrowClass = "text-xs font-semibold uppercase tracking-[0.16em] text-brand";
-export const panelClass = "space-y-5 rounded-2xl border border-line bg-surface-muted/60 p-5 sm:p-6";
 
 const noticeTones = {
   info: "border-line bg-surface-muted text-ink-muted",

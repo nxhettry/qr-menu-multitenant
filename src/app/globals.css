@@ -112,3 +112,8 @@
 
 /* Unlayered on purpose: Devanagari needs extra line height even where utilities set tighter leading. */
 :lang(ne) { line-height: 1.6; }
+
+.sheet[open] { animation: sheet-in 180ms ease-out; }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(24px); } }
+@media (prefers-reduced-motion: reduce) { .sheet[open] { animation: none; } }
+html:has([data-sticky-toolbar]) { scroll-padding-top: 8.5rem; }

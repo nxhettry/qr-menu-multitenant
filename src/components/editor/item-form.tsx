@@ -2,13 +2,14 @@
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import type { EditorCategory, EditorItem } from "@/lib/editor/data";
 import { itemInput, parsePrice, priceInputValue, type ItemInput } from "@/lib/editor/schemas";
-import { Field, FormError, eyebrowClass, inputClass, noticeClass, panelClass, primaryClass, secondaryClass } from "@/components/ui/form";
+import { Field, FormError, eyebrowClass, inputClass, noticeClass, primaryClass, secondaryClass } from "@/components/ui/form";
+import { DialogFooter } from "@/components/ui/dialog";
 import type { ItemFields } from "./item-form-values";
 import { ItemDetailFields } from "./item-detail-fields";
 import { categoryLabel, orderedCategories } from "@/lib/editor/categories";
 
-export function ItemForm({ item, categoryId, categories, pending, onSave, onCancel }: {
-  item?: EditorItem; categoryId: string; categories: EditorCategory[]; pending: boolean;
+export function ItemForm({ item, categoryId, categories, pending, error, onSave, onCancel }: {
+  item?: EditorItem; categoryId: string; categories: EditorCategory[]; pending: boolean; error?: string;
   onSave: (value: ItemInput) => void; onCancel: () => void;
 }) {
   const { register, control, handleSubmit, setError, formState: { errors } } = useForm<ItemFields>({ defaultValues: {
@@ -41,12 +42,11 @@ export function ItemForm({ item, categoryId, categories, pending, onSave, onCanc
       onSave(parsed.data);
     } catch (error) { setError("root", { message: error instanceof Error ? error.message : "Check your menu item." }); }
   }
-  return <form onSubmit={handleSubmit(submit)} className={panelClass}>
-    <h3 className="text-lg font-semibold">{item ? "Edit item" : "Add an item"}</h3>
+  return <form onSubmit={handleSubmit(submit)}>
     <fieldset disabled={pending} className="space-y-5">
       <p className={eyebrowClass}>Basic details</p>
       <Field label="Category / subcategory"><select {...register("category_id")} className={inputClass}>{orderedCategories(categories).map(category => <option key={category.id} value={category.id}>{categoryLabel(category, categories)}</option>)}</select></Field>
-      <Field label="Item name"><input {...register("name")} className={inputClass} maxLength={150} required autoFocus /></Field>
+      <Field label="Item name"><input {...register("name")} className={inputClass} maxLength={150} required data-autofocus /></Field>
       <Field label="Nepali name (optional)"><input {...register("name_ne")} lang="ne" className={inputClass} maxLength={150} /></Field>
       <Field label="Description (optional)"><textarea {...register("description")} className={inputClass} rows={3} maxLength={1000} /></Field>
       <details className="text-sm"><summary className="cursor-pointer py-2">Nepali description</summary><textarea {...register("description_ne")} lang="ne" aria-label="Nepali description" className={inputClass} rows={3} maxLength={1000} /></details>
@@ -76,8 +76,8 @@ export function ItemForm({ item, categoryId, categories, pending, onSave, onCanc
       <label className="flex items-start gap-3 rounded-xl bg-brand-soft p-4 text-sm"><input {...register("is_featured")} type="checkbox" className="mt-0.5 h-5 w-5" /><span>Feature in specials banner<span className="mt-1 block text-xs leading-5 text-ink-muted">Choose up to six specials. Their names, prices, and item photos appear at the top of your public menu. Hidden categories and sold-out specials stay out of the banner.</span></span></label>
       <ItemDetailFields control={control} register={register} />
       {item?.is_example_price && <label className={`${noticeClass("warning")} flex items-start gap-3`}><input {...register("confirm_prices")} type="checkbox" className="mt-1 h-5 w-5" required />I have checked every example price for this item and its variants.</label>}
-      <FormError message={errors.root?.message} />
-      <div className="flex flex-wrap gap-3"><button disabled={pending} className={primaryClass}>{pending ? "Saving…" : "Save item"}</button><button type="button" onClick={onCancel} className={secondaryClass}>Cancel</button></div>
+      <FormError message={errors.root?.message ?? error} />
+      <DialogFooter><button disabled={pending} className={primaryClass}>{pending ? "Saving…" : "Save item"}</button><button type="button" onClick={onCancel} className={secondaryClass}>Cancel</button></DialogFooter>
     </fieldset>
   </form>;
 }
