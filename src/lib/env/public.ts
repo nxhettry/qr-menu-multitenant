@@ -18,3 +18,7 @@ export function getSupabasePublicEnv() {
     key: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   });
 }
+
+export function getTurnstileSiteKey() {
+  return process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || undefined;
+}

@@ -6,14 +6,15 @@ import { createClient } from "@/lib/supabase/server";
 import { credentialsSchema, type FormState } from "@/lib/auth/schemas";
 import { getSiteOrigin } from "@/lib/env/server";
 import { authErrorMessage } from "@/lib/auth/errors";
+import { CAPTCHA_FAILED_MESSAGE, captchaOptions, isCaptchaError } from "@/lib/auth/captcha";
 import { TERMS_VERSION } from "@/lib/legal";
 export async function login(_state: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.extend({ password: z.string().min(1).max(128) })
     .safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
   if (!input.success) return { error: "Enter your email and password." };
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(input.data);
-  if (error) return { error: "Could not sign in. Check your details and verify your email." };
+  const { error } = await supabase.auth.signInWithPassword({ ...input.data, options: captchaOptions(form) });
+  if (error) return { error: isCaptchaError(error) ? CAPTCHA_FAILED_MESSAGE : "Could not sign in. Check your details and verify your email." };
   revalidatePath("/dashboard", "layout");
   redirect("/dashboard");
 }
@@ -23,7 +24,7 @@ export async function register(_state: FormState, form: FormData): Promise<FormS
   if (form.get("acceptTerms") !== "on") return { error: "Please accept the Terms of Service and Privacy Policy to continue." };
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ ...input.data,
-    options: { emailRedirectTo: `${getSiteOrigin()}/auth/callback?next=/onboarding`, data: { terms_version: TERMS_VERSION } },
+    options: { ...captchaOptions(form), emailRedirectTo: `${getSiteOrigin()}/auth/callback?next=/onboarding`, data: { terms_version: TERMS_VERSION } },
   });
   if (error) return { error: authErrorMessage("register", error, "Could not create the account. Please try again shortly.") };
   if (data.session) redirect("/onboarding");
@@ -35,6 +36,7 @@ export async function requestPasswordReset(_state: FormState, form: FormData): P
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email.data, {
     redirectTo: `${getSiteOrigin()}/auth/callback?next=/reset-password`,
+    ...captchaOptions(form),
   });
   if (error) return { error: authErrorMessage("password-reset", error, "Could not request a reset. Please try again shortly.") };
   return { message: "If an account exists for that email, you’ll receive a password reset link." };

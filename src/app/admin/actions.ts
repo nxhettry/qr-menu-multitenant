@@ -7,6 +7,7 @@ import { createServiceClient } from "@/lib/supabase/admin";
 import { credentialsSchema, type FormState } from "@/lib/auth/schemas";
 import { getSiteOrigin } from "@/lib/env/server";
 import { authErrorMessage } from "@/lib/auth/errors";
+import { CAPTCHA_FAILED_MESSAGE, captchaOptions, isCaptchaError } from "@/lib/auth/captcha";
 import { assertSuperAdmin } from "@/lib/admin/session";
 import { getAdminUser, logAdminUserAction, setRestaurantSuspended, type AdminUserAction } from "@/lib/admin/repository";
 import { newPasswordSchema, type AdminActionState } from "@/lib/admin/schemas";
@@ -20,7 +21,8 @@ export async function adminLogin(_state: FormState, form: FormData): Promise<For
     .safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
   if (!input.success) return { error: "Enter your email and password." };
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(input.data);
+  const { error } = await supabase.auth.signInWithPassword({ ...input.data, options: captchaOptions(form) });
+  if (error && isCaptchaError(error)) return { error: CAPTCHA_FAILED_MESSAGE };
   const { data: isAdmin } = error ? { data: false } : await supabase.rpc("is_super_admin");
   if (isAdmin !== true) {
     if (!error) await supabase.auth.signOut({ scope: "local" });
@@ -90,11 +92,12 @@ export async function setUserBannedAction(userId: string, banned: boolean): Prom
   }, banned ? "Sign-in disabled. Existing sessions end within an hour." : "Sign-in enabled.");
 }
 
-export async function sendUserResetAction(userId: string): Promise<AdminActionState> {
+export async function sendUserResetAction(userId: string, captchaToken?: string): Promise<AdminActionState> {
   return runUserAction(userId, "admin.user.reset_sent", async user => {
     if (!user.email) return "This account has no email address.";
     const { error } = await (await createClient()).auth.resetPasswordForEmail(user.email, {
       redirectTo: `${getSiteOrigin()}/auth/callback?next=/reset-password`,
+      captchaToken: typeof captchaToken === "string" ? captchaToken : undefined,
     });
     return error ? authErrorMessage("admin-reset", error, "Could not send the reset email. Please try again shortly.") : undefined;
   }, "Password reset email sent.");
@@ -107,8 +110,8 @@ export async function changeOwnPasswordAction(_state: AdminActionState, form: Fo
   try { admin = await assertSuperAdmin(); }
   catch { return notPermitted; }
   const supabase = await createClient();
-  const { error: verifyError } = await supabase.auth.signInWithPassword({ email: admin.email ?? "", password: String(form.get("current") ?? "") });
-  if (verifyError) return { error: "Your current password is incorrect." };
+  const { error: verifyError } = await supabase.auth.signInWithPassword({ email: admin.email ?? "", password: String(form.get("current") ?? ""), options: captchaOptions(form) });
+  if (verifyError) return isCaptchaError(verifyError) ? { error: CAPTCHA_FAILED_MESSAGE } : { error: "Your current password is incorrect." };
   const { error } = await supabase.auth.updateUser({ password: password.data });
   if (error) return { error: authErrorMessage("admin-own-password", error, "Could not update your password. Try a different one.") };
   return { message: "Your password has been updated." };

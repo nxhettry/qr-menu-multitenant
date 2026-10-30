@@ -4,7 +4,9 @@ import { useActionState } from "react";
 import { login, register, requestPasswordReset, resetPassword } from "@/app/auth/actions";
 import { adminLogin } from "@/app/admin/actions";
 import type { FormState } from "@/lib/auth/schemas";
+import { useTurnstile } from "@/hooks/use-turnstile";
 import { AuthShell } from "./ui/auth-shell";
+import { TurnstileField } from "./ui/turnstile-field";
 import { checkboxClass, Field, FormError, inputClass, linkClass, noticeClass, primaryClass } from "./ui/form";
 
 const modes = {
@@ -17,6 +19,8 @@ const modes = {
 export function AuthForm({ mode, confirmationError = false }: { mode: keyof typeof modes; confirmationError?: boolean }) {
   const config = modes[mode];
   const [state, action, pending] = useActionState<FormState, FormData>(config.action, {});
+  const captcha = useTurnstile(state);
+  const needsCaptcha = mode !== "reset";
   const footer = mode === "admin" ? undefined : mode === "login"
     ? <div className="flex flex-wrap justify-between gap-4"><span className="text-ink-muted">New here? <Link href="/register" className={linkClass}>Create an account</Link></span><Link href="/forgot-password" className={linkClass}>Forgot password?</Link></div>
     : <p className="text-center text-ink-muted">{mode === "register" ? "Already have an account? " : ""}<Link href="/login" className={linkClass}>{mode === "register" ? "Sign in" : "Back to sign in"}</Link></p>;
@@ -28,9 +32,10 @@ export function AuthForm({ mode, confirmationError = false }: { mode: keyof type
       {mode === "register" && <label className="flex items-start gap-3 text-sm leading-6 text-ink-muted"><input className={`${checkboxClass} mt-0.5`} name="acceptTerms" type="checkbox" required />
         <span>I agree to the <Link href="/terms" target="_blank" className={linkClass}>Terms of Service</Link> and <Link href="/privacy" target="_blank" className={linkClass}>Privacy Policy</Link>.</span></label>}
       {mode === "reset" && <Field label="Confirm password"><input className={inputClass} name="confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></Field>}
+      {needsCaptcha && <TurnstileField captcha={captcha} />}
       <FormError message={state.error} />
       {state.message && <p role="status" className={noticeClass("success")}>{state.message}</p>}
-      <button disabled={pending} className={`${primaryClass} w-full`}>{pending ? "Please wait…" : config.button}</button>
+      <button disabled={pending || (needsCaptcha && captcha.blocked)} className={`${primaryClass} w-full`}>{pending ? "Please wait…" : config.button}</button>
     </form>
   </AuthShell>;
 }
