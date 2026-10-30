@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { publicMenuSchema } from "../src/lib/menu/schema.ts";
 import { demoMenu } from "../src/lib/menu/demo.ts";
-import { accessibleAccent, accessibleAccentDark, cloudinaryImageUrl, formatPrice, openingHoursEntries, phoneHref, safeMapUrl } from "../src/lib/menu/presentation.ts";
+import { convertVatPrice } from "../src/lib/menu/vat.ts";
+import { accessibleAccent, accessibleAccentDark, cloudinaryImageUrl, formatPrice, guestPrice, openingHoursEntries, phoneHref, safeMapUrl } from "../src/lib/menu/presentation.ts";
 import { filterMenu, indexMenu, itemAvailable } from "../src/lib/menu/filter.ts";
 import { isRestaurantSlug, suggestSlug } from "../src/lib/menu/slugs.ts";
 
@@ -58,6 +59,28 @@ test("menu presentation preserves paisa precision and bounds unstructured openin
   assert.equal(formatPrice(18005), "Rs 180.05");
   assert.equal(formatPrice(0), "Rs 0");
   assert.deepEqual(openingHoursEntries({ Monday: "09:00–21:00", Tuesday: { bad: "data" }, Wednesday: "x".repeat(101) }), [["Monday", "09:00–21:00"]]);
+});
+
+test("guest prices add VAT in exclusive mode and show stored prices in inclusive mode", () => {
+  const exclusive = { pricesIncludeVat: false, vatPercent: 13 };
+  assert.equal(guestPrice(25000, exclusive), 28300);
+  assert.equal(guestPrice(18005, exclusive), 20300);
+  assert.equal(guestPrice(0, exclusive), 0);
+  assert.equal(guestPrice(25000, { pricesIncludeVat: true, vatPercent: 13 }), 25000);
+  assert.equal(guestPrice(18005, { pricesIncludeVat: true, vatPercent: 13 }), 18005);
+  assert.equal(guestPrice(25000, { pricesIncludeVat: false, vatPercent: 0 }), 25000);
+  assert.equal(guestPrice(10000, { pricesIncludeVat: false, vatPercent: 5.5 }), 10600);
+  assert.equal(guestPrice(10000, { pricesIncludeVat: false, vatPercent: 5 }), 10500);
+});
+
+test("converting to inclusive and back restores whole-rupee prices at every rate", () => {
+  for (const percent of [13, 5.5, 0.01, 100]) {
+    for (let rupees = 1; rupees <= 5000; rupees += 7) {
+      const stored = rupees * 100;
+      assert.equal(convertVatPrice(convertVatPrice(stored, percent, true), percent, false), stored, `${rupees} at ${percent}%`);
+    }
+  }
+  assert.equal(convertVatPrice(28300, 13, false), 25000);
 });
 
 test("menu address suggestions are valid, unreserved slugs", () => {

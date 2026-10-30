@@ -47,6 +47,7 @@ try {
   await db.exec(await readFile(new URL("../supabase/migrations/202610160003_featured_menu.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610170001_bulk_menu.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610280001_slug_availability.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202610290002_vat_mode_conversion.sql", import.meta.url), "utf8"));
   const { rows: [restaurant] } = await db.query("insert into public.restaurants(name,slug,status,phone,map_url,vat_percent,prices_include_vat) values('Live Kitchen','live-kitchen','PUBLISHED','+977 9801234567','https://maps.google.com/?q=Kathmandu',13,true) returning id,short_code");
   const { rows: [category] } = await db.query("insert into public.menu_categories(restaurant_id,name) values($1,'Lunch') returning id", [restaurant.id]);
   await db.query("insert into public.menu_items(restaurant_id,category_id,name,description,price_minor,is_available) values($1,$2,'Test thali','A fresh seasonal lunch.',18005,false)", [restaurant.id, category.id]);
@@ -102,7 +103,8 @@ try {
         response.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(result));
         return;
       }
-      assert(["get_public_menu", "resolve_menu_code", "resolve_old_slug", "get_editor_menu", "mutate_menu", "slug_available"].includes(functionName));
+      if (functionName === "is_super_admin") { response.writeHead(200, { "Content-Type": "application/json" }).end("false"); return; }
+      assert(["get_public_menu", "resolve_menu_code", "resolve_old_slug", "get_editor_menu", "mutate_menu", "slug_available", "change_vat_mode"].includes(functionName));
       let body = "";
       for await (const chunk of request) body += chunk;
       const args = JSON.parse(body);
@@ -112,8 +114,9 @@ try {
       const data = await db.transaction(async tx => {
         await tx.exec(`set local role ${authenticated ? "authenticated" : "anon"}`);
         await tx.query("select set_config('request.jwt.claim.sub',$1,true)", [authenticated ? ownerId : ""]);
-        const sqlArgs = functionName === "mutate_menu" ? [args.p_restaurant_id, args.p_operation, JSON.stringify(args.p_payload)] : functionName === "get_editor_menu" ? [args.p_restaurant_id] : [value];
-        return (await tx.query(`select public.${functionName}(${functionName === "mutate_menu" ? "$1,$2,$3::jsonb" : "$1"}) as value`, sqlArgs)).rows[0].value;
+        const sqlArgs = functionName === "mutate_menu" ? [args.p_restaurant_id, args.p_operation, JSON.stringify(args.p_payload)] : functionName === "change_vat_mode" ? [args.p_restaurant_id, args.p_include_vat, args.p_convert] : functionName === "get_editor_menu" ? [args.p_restaurant_id] : [value];
+        const placeholders = functionName === "mutate_menu" ? "$1,$2,$3::jsonb" : functionName === "change_vat_mode" ? "$1,$2,$3" : "$1";
+        return (await tx.query(`select public.${functionName}(${placeholders}) as value`, sqlArgs)).rows[0].value;
       });
       response.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(data));
     } catch (error) {
@@ -211,12 +214,16 @@ try {
   const manifest = JSON.parse(await readFile(".next/server/server-reference-manifest.json", "utf8"));
   const [actionId] = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "mutateEditorAction") ?? [];
   assert(actionId, "Editor server action must be registered");
-  async function action(tenant, operation, payload) {
-    const response = await fetch(`${base}/dashboard/${tenant}`, { method: "POST", headers: { ...privateHeaders, "Next-Action": actionId, Origin: base, "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify([tenant, { operation, payload }]) });
+  const [vatActionId] = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "changeVatModeAction") ?? [];
+  assert(vatActionId, "VAT server action must be registered");
+  async function invoke(id, tenant, input) {
+    const response = await fetch(`${base}/dashboard/${tenant}`, { method: "POST", headers: { ...privateHeaders, "Next-Action": id, Origin: base, "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify([tenant, input]) });
     const text = await response.text();
     assert.equal(response.status, 200, text.slice(-1500));
     return text;
   }
+  const action = (tenant, operation, payload) => invoke(actionId, tenant, { operation, payload });
+  const changeVatMode = (tenant, pricesIncludeVat, convertPrices) => invoke(vatActionId, tenant, { prices_include_vat: pricesIncludeVat, convert_prices: convertPrices });
 
   const qrPath = `/q/${restaurant.short_code}`;
   let qr = await page(base, qrPath);
@@ -288,6 +295,21 @@ try {
   assert.equal(rejectedImage.status, 400);
   assert(rejectedImage.headers.get("cache-control").includes("no-store"));
   console.log("PASS real Server Actions invalidate prices/publication caches after commit; failed and cross-tenant saves are rejected; upload rejects foreign origins");
+  const guestPage = async () => (await page(base, "/renamed-kitchen")).body;
+  assert((await changeVatMode(restaurant.id, false, false)).includes("Saved."));
+  let vatPage = await guestPage();
+  assert(vatPage.includes("Rs 205") && !vatPage.includes("Rs 181.01"), "exclusive mode must show the final price including VAT");
+  assert(/Prices include (<!-- -->)?13(<!-- -->)?% VAT/.test(vatPage), "footer must state that prices include VAT");
+  assert((await changeVatMode(restaurant.id, true, false)).includes("Saved."));
+  assert((await guestPage()).includes("Rs 181.01"), "keeping numbers must expire the public cache");
+  assert((await changeVatMode(restaurant.id, false, true)).includes("Saved."));
+  vatPage = await guestPage();
+  assert(vatPage.includes("Rs 181") && !vatPage.includes("Rs 181.01"), "converting must expire the public cache and keep the guest price");
+  assert((await changeVatMode(otherId, true, true)).includes("Restaurant not found"));
+  assert((await changeVatMode(restaurant.id, true, false)).includes("Saved."));
+  assert((await action(restaurant.id, "saveItem", itemPayload)).includes("Saved."));
+  assert((await guestPage()).includes("Rs 181.01"));
+  console.log("PASS VAT mode changes expire the public cache, guests see final prices in both modes, and cross-tenant changes are rejected");
   if (process.argv.includes("--browser")) {
     const { checkEditorBrowser } = await import("./check-editor-browser.mjs");
     await checkEditorBrowser({ base, cookie, restaurantId: restaurant.id, draftId });

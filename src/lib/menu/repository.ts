@@ -7,7 +7,7 @@ import { isRestaurantSlug } from "./slugs";
 
 export async function getPublicMenu(slug: string) {
   "use cache";
-  cacheLife({ stale: 30, revalidate: 60, expire: 300 });
+  cacheLife("menu");
   if (slug !== DEMO_SLUG && !isRestaurantSlug(slug)) return null;
   cacheTag(`menu-slug:${slug}`);
   if (slug === DEMO_SLUG) return demoMenu;

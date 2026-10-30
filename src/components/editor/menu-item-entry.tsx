@@ -2,14 +2,16 @@
 import { memo, type DragEvent } from "react";
 import type { EditorCategory, EditorItem } from "@/lib/editor/data";
 import type { MenuViewMode } from "@/hooks/use-menu-editor-view";
-import { cloudinaryImageUrl, formatPrice } from "@/lib/menu/presentation";
+import { cloudinaryImageUrl, formatPrice, guestPrice } from "@/lib/menu/presentation";
+import type { VatRule } from "@/lib/menu/vat";
+import { showsGuestPrice } from "./guest-price-hint";
 import { cardClass } from "@/components/ui/form";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { MenuIcon } from "@/components/menu/icon";
 import { MenuImageDisplay } from "@/components/menu-image-display";
 import type { MenuEditorActions } from "./menu-actions";
 
-type EntryProps = { item: EditorItem; category: EditorCategory; index: number; view: MenuViewMode; actions: MenuEditorActions };
+type EntryProps = { item: EditorItem; category: EditorCategory; index: number; view: MenuViewMode; vat: VatRule; actions: MenuEditorActions };
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const badgeClass = "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold";
@@ -22,9 +24,10 @@ function Thumbnail({ item, grid }: { item: EditorItem; grid: boolean }) {
   return <MenuImageDisplay key={src} src={src} alt="" width={grid ? 320 : 96} height={grid ? 240 : 96} className={`${shape} shrink-0 object-cover`} />;
 }
 
-function ItemMeta({ item }: { item: EditorItem }) {
+function ItemMeta({ item, vat }: { item: EditorItem; vat: VatRule }) {
   return <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-muted">
     <span>{item.price_minor !== null ? formatPrice(item.price_minor) : `${item.variants.length} variants`}</span>
+    {item.price_minor !== null && showsGuestPrice(vat) && <span className="text-ink-subtle">Guests pay {formatPrice(guestPrice(item.price_minor, vat))}</span>}
     {!item.is_visible && <span className={`${badgeClass} bg-surface-muted text-ink-muted ring-1 ring-line`}>Hidden</span>}
     {item.is_featured && <span className={`${badgeClass} bg-brand-soft text-brand`}>Special</span>}
     {item.is_example_price && <span className={`${badgeClass} bg-warning-soft text-warning`}>Review price</span>}
@@ -38,7 +41,7 @@ function AvailabilityToggle({ item, actions, className = "" }: { item: EditorIte
   </button>;
 }
 
-function ItemControls({ item, category, index, actions, className = "" }: Omit<EntryProps, "view"> & { className?: string }) {
+function ItemControls({ item, category, index, actions, className = "" }: Omit<EntryProps, "view" | "vat"> & { className?: string }) {
   const { disabled, reorderable } = actions;
   return <div className={`flex items-center ${className}`}>
     {reorderable && <button type="button" disabled={disabled} draggable={!disabled} onDragStart={event => actions.dragStart(event, "item", item.id, category.id)} aria-label={`Drag to reorder ${item.name}`}
@@ -54,21 +57,21 @@ function ItemControls({ item, category, index, actions, className = "" }: Omit<E
   </div>;
 }
 
-export const MenuItemEntry = memo(function MenuItemEntry({ item, category, index, view, actions }: EntryProps) {
+export const MenuItemEntry = memo(function MenuItemEntry({ item, category, index, view, vat, actions }: EntryProps) {
   const dropProps = { onDragOver: actions.dragOver, onDrop: (event: DragEvent) => actions.drop(event, "item", item.id, category.id) };
   const title = <button type="button" disabled={actions.disabled} onClick={() => actions.editItem(item)} className={overlayButton}>{item.name}</button>;
   if (view === "grid") return <li {...dropProps} className={`${cardClass} relative flex flex-col transition-shadow hover:shadow-lift ${item.is_visible ? "" : "opacity-75"}`}>
     <Thumbnail item={item} grid />
     <div className="flex flex-1 flex-col p-3">
       <h4 className="break-words text-sm font-semibold leading-5">{title}</h4>
-      <ItemMeta item={item} />
+      <ItemMeta item={item} vat={vat} />
       <div className="mt-auto pt-3"><AvailabilityToggle item={item} actions={actions} className="w-full justify-center" /></div>
     </div>
     <ItemControls item={item} category={category} index={index} actions={actions} className="absolute right-1.5 top-1.5 rounded-full bg-surface/90 shadow-card backdrop-blur" />
   </li>;
   return <li {...dropProps} className={`relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] ${item.is_visible ? "" : "opacity-75"}`}>
     <div className="row-span-2 self-start sm:row-span-1 sm:self-center"><Thumbnail item={item} grid={false} /></div>
-    <div className="min-w-0"><h4 className="break-words font-medium leading-6">{title}</h4><ItemMeta item={item} /></div>
+    <div className="min-w-0"><h4 className="break-words font-medium leading-6">{title}</h4><ItemMeta item={item} vat={vat} /></div>
     <ItemControls item={item} category={category} index={index} actions={actions} className="col-start-3 row-start-1 sm:col-start-4" />
     <AvailabilityToggle item={item} actions={actions} className="col-start-2 row-start-2 justify-self-start sm:col-start-3 sm:row-start-1" />
   </li>;

@@ -4,6 +4,9 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { parsePrice, priceInputValue, editorMutation } from "../src/lib/editor/schemas.ts";
+import { convertVatPrice } from "../src/lib/menu/vat.ts";
+import { editorDataSchema } from "../src/lib/editor/data.ts";
+import { planVatConversion } from "../src/lib/editor/vat-conversion.ts";
 import { prepareImage, MAX_IMAGE_BYTES } from "../src/lib/cloudinary/prepare-image.ts";
 import sharp from "sharp";
 
@@ -35,7 +38,7 @@ test("owner editor transactions, publication, roles and asset isolation", async 
     create table auth.users(id uuid primary key,email_confirmed_at timestamptz);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth,public to anon,authenticated;`);
-  for (const file of ["202610160001_foundation.sql","202610160002_owner_editor.sql","202610160003_featured_menu.sql","202610170001_bulk_menu.sql","202610280001_slug_availability.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),"utf8"));
+  for (const file of ["202610160001_foundation.sql","202610160002_owner_editor.sql","202610160003_featured_menu.sql","202610170001_bulk_menu.sql","202610280001_slug_availability.sql","202610290002_vat_mode_conversion.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`,import.meta.url),"utf8"));
   const ownerA=randomUUID(), ownerB=randomUUID(), editor=randomUUID();
   for (const id of [ownerA,ownerB,editor]) await db.query("insert into auth.users values($1,now())",[id]);
   async function asUser(id,fn) {
@@ -180,6 +183,73 @@ test("owner editor transactions, publication, roles and asset isolation", async 
       else {await db.query("update public.subscriptions set editing_locked_at=null where restaurant_id=$1",[tenantA]);await db.query("update public.restaurants set status='SUSPENDED' where id=$1",[tenantA]);}
       for(const [op,payload] of [["saveCategory",category("Blocked")],["visibility",{published:false}],["reserveUpload",{kind:"logo"}],["availability",{id:itemA,available:true}]]) await assert.rejects(mutate(ownerA,tenantA,op,payload),denied);
       assert(await asUser(ownerA,()=>scalar("select public.get_editor_menu($1)",[tenantA])));
+    }
+  });
+  await t.test("VAT mode conversion rewrites items, variants and add-ons atomically for owners and managers only",async()=>{
+    const tenant=await asUser(ownerA,()=>scalar("select public.create_restaurant('Vat Kitchen','vat-kitchen')"));
+    await db.query("insert into public.memberships values($1,$2,'EDITOR',now())",[editor,tenant]);
+    await db.query("update public.restaurants set vat_percent=13,prices_include_vat=false where id=$1",[tenant]);
+    const cat=(await mutate(ownerA,tenant,"saveCategory",category("Momo"))).id;
+    const addons={addon_groups:[{name:"Sauce",min_select:0,max_select:1,options:[{name:"Achar",price_minor:5000,is_available:true},{name:"Cheese",price_minor:10000,is_available:true}]}]};
+    const plain=(await mutate(ownerA,tenant,"saveItem",{...input(cat),name:"Chicken Momo",price_minor:25000,details:addons})).id;
+    const sized=(await mutate(ownerA,tenant,"saveItem",{...input(cat),name:"Thali",price_minor:null,variants:[
+      {name:"Half",name_ne:null,price_minor:12000,is_available:true},{name:"Full",name_ne:null,price_minor:20000,is_available:true}]})).id;
+    const free=(await mutate(ownerA,tenant,"saveItem",{...input(cat),name:"Water",price_minor:0})).id;
+    const itemBBefore=await scalar("select price_minor from public.menu_items where id=$1",[itemB]);
+    const changeVat=(user,id,include,convert)=>asUser(user,()=>scalar("select public.change_vat_mode($1,$2,$3)",[id,include,convert]));
+    const snapshot=async()=>{
+      const items=(await asUser(ownerA,()=>scalar("select public.get_editor_menu($1)",[tenant]))).categories.flatMap(entry=>entry.items);
+      const byId=id=>items.find(item=>item.id===id);
+      return {plain:byId(plain).price_minor,addons:byId(plain).details.addon_groups[0].options.map(option=>option.price_minor),
+        variants:byId(sized).variants.map(variant=>variant.price_minor),free:byId(free).price_minor};
+    };
+    const flag=()=>scalar("select prices_include_vat from public.restaurants where id=$1",[tenant]);
+    const audits=()=>scalar("select count(*)::int from public.audit_events where restaurant_id=$1 and action='menu.changeVatMode'",[tenant]);
+
+    await assert.rejects(changeVat(editor,tenant,true,true),denied);
+    await assert.rejects(changeVat(null,tenant,true,true),denied);
+    await assert.rejects(changeVat(ownerB,tenant,true,true),missing);
+    assert.deepEqual(await snapshot(),{plain:25000,addons:[5000,10000],variants:[12000,20000],free:0});
+
+    const editorData=editorDataSchema.parse(await asUser(ownerA,()=>scalar("select public.get_editor_menu($1)",[tenant])));
+    const plan=planVatConversion(editorData.categories,13,true,"convert");
+    assert.equal(plan.changed,5);
+    assert.deepEqual(plan.rows.find(row=>row.label==="Chicken Momo"),{label:"Chicken Momo",from:25000,to:28300});
+    assert.equal(planVatConversion(editorData.categories,13,true,"keep").rows.find(row=>row.label==="Chicken Momo").from,28300);
+
+    const receipt=await changeVat(ownerA,tenant,true,true);
+    assert.equal(receipt.slug,"vat-kitchen");
+    assert.equal(await flag(),true);
+    assert.deepEqual(await snapshot(),{plain:28300,addons:[5700,11300],variants:[13600,22600],free:0});
+    assert.equal(await scalar("select actor_id from public.audit_events where restaurant_id=$1 and action='menu.changeVatMode'",[tenant]),ownerA);
+
+    await changeVat(ownerA,tenant,true,true);
+    assert.equal(await audits(),1,"switching to the current mode is a no-op");
+    assert.deepEqual(await snapshot(),{plain:28300,addons:[5700,11300],variants:[13600,22600],free:0});
+
+    await changeVat(ownerA,tenant,false,true);
+    assert.equal(await flag(),false);
+    assert.deepEqual(await snapshot(),{plain:25000,addons:[5000,10000],variants:[12000,20000],free:0});
+
+    await changeVat(ownerA,tenant,true,false);
+    assert.equal(await flag(),true);
+    assert.deepEqual(await snapshot(),{plain:25000,addons:[5000,10000],variants:[12000,20000],free:0});
+    assert.equal(await audits(),3);
+    assert.equal(await scalar("select price_minor from public.menu_items where id=$1",[itemB]),itemBBefore);
+
+    await changeVat(ownerA,tenant,false,false);
+    const huge=(await mutate(ownerA,tenant,"saveItem",{...input(cat),name:"Banquet",price_minor:950000000})).id;
+    await assert.rejects(changeVat(ownerA,tenant,true,true),invalid);
+    assert.equal(await flag(),false);
+    assert.equal(await scalar("select price_minor from public.menu_items where id=$1",[huge]),950000000);
+    assert.deepEqual(await snapshot(),{plain:25000,addons:[5000,10000],variants:[12000,20000],free:0});
+  });
+  await t.test("SQL and TypeScript conversions round identically",async()=>{
+    const prices=[1,49,50,99,100,101,12345,18005,25000,28250,99999,1000000,500000000,950000000];
+    for(const percent of [0,0.01,5.5,13,100]) for(const toInclusive of [true,false]) for(const price of prices) {
+      let expected; try { expected=convertVatPrice(price,percent,toInclusive); } catch { expected=undefined; }
+      const sql=await db.query("select private.convert_vat_price($1,$2,$3) as value",[price,percent,toInclusive]).then(result=>result.rows[0].value,error=>{ assert.equal(error.code,"23514"); return undefined; });
+      if(expected!==undefined && expected>1000000000) assert.equal(sql,undefined,`${price} ${percent} ${toInclusive}`); else assert.equal(sql,expected,`${price} ${percent} ${toInclusive}`);
     }
   });
 });

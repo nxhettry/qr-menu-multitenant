@@ -12,6 +12,7 @@ import { ImageUploader } from "./image-uploader";
 import { CategorySection } from "./category-section";
 import { MenuToolbar } from "./menu-toolbar";
 import type { MenuEditorActions } from "./menu-actions";
+import type { VatRule } from "@/lib/menu/vat";
 
 type DialogState =
   | { kind: "category"; categoryId?: string; parentId?: string }
@@ -26,8 +27,8 @@ function findItem(categories: EditorCategory[], id: string) {
   return categories.flatMap(category => category.items).find(item => item.id === id);
 }
 
-export function MenuWorkspace({ restaurantId, categories, canEdit, pending, result, save, clearResult, refresh }: {
-  restaurantId: string; categories: EditorCategory[]; canEdit: boolean; pending: boolean; result: MutationResult;
+export function MenuWorkspace({ restaurantId, categories, vat, canEdit, pending, result, save, clearResult, refresh }: {
+  restaurantId: string; categories: EditorCategory[]; vat: VatRule; canEdit: boolean; pending: boolean; result: MutationResult;
   save: (input: EditorMutation, onSuccess?: () => void) => void; clearResult: () => void; refresh: () => Promise<unknown>;
 }) {
   const view = useMenuEditorView(restaurantId, categories);
@@ -67,7 +68,7 @@ export function MenuWorkspace({ restaurantId, categories, canEdit, pending, resu
     {view.searching && <p role="status" className="text-sm text-ink-muted">{view.matchCount} {view.matchCount === 1 ? "item" : "items"} in {view.visibleTree.length} {view.visibleTree.length === 1 ? "category" : "categories"} match “{view.query.trim()}”. Reordering is paused while searching.</p>}
     {view.searching && !view.visibleTree.length && <div className="rounded-2xl border border-dashed border-line-strong px-6 py-10 text-center"><h3 className="text-lg font-semibold">Nothing matches your search.</h3><button type="button" onClick={() => view.setQuery("")} className={`${secondaryClass} mt-4`}>Clear search</button></div>}
     <div className="space-y-4">
-      {view.visibleTree.map(node => <CategorySection key={node.id} category={node} subcategories={node.children} siblings={view.tree} parentVisible view={view.view} actions={actions} isExpanded={view.isExpanded} toggle={view.toggle} />)}
+      {view.visibleTree.map(node => <CategorySection key={node.id} category={node} subcategories={node.children} siblings={view.tree} parentVisible view={view.view} vat={vat} actions={actions} isExpanded={view.isExpanded} toggle={view.toggle} />)}
     </div>
 
     {dialog?.kind === "category" && <Dialog title={editingCategory ? (editingCategory.parent_id ? "Edit subcategory" : "Edit category") : dialog.parentId ? "Add a subcategory" : "Add a category"}
@@ -76,7 +77,7 @@ export function MenuWorkspace({ restaurantId, categories, canEdit, pending, resu
         onSave={payload => save({ operation: "saveCategory", payload }, () => { if (!payload.id) revealNextCreated(); close(); })} />
     </Dialog>}
     {dialog?.kind === "item" && <Dialog title={editingItem ? "Edit item" : "Add an item"} description={editingItem?.name} size="lg" onClose={close}>
-      <ItemForm item={editingItem} categoryId={dialog.categoryId} categories={categories} pending={pending} error={result.error} onCancel={close}
+      <ItemForm item={editingItem} categoryId={dialog.categoryId} categories={categories} vat={vat} pending={pending} error={result.error} onCancel={close}
         onSave={payload => save({ operation: "saveItem", payload }, () => { expand(payload.category_id); close(); })} />
     </Dialog>}
     {dialog?.kind === "photo" && editingItem && <Dialog title="Item photo" description={editingItem.name} onClose={close}>

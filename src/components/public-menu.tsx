@@ -46,7 +46,7 @@ export function PublicMenu({ menu, isDemo = false }: { menu: PublishedMenu; isDe
       </details>}
       <div className="mx-auto mt-6 max-w-md space-y-0.5 border-t border-line pt-5 text-xs leading-6 text-ink-subtle">
         <p>All prices in Nepalese rupees (NPR).</p>
-        {menu.vatPercent > 0 && <p>{menu.pricesIncludeVat ? "Prices include" : "Prices exclude"} {menu.vatPercent}% VAT.</p>}
+        {menu.vatPercent > 0 && <p>Prices include {menu.vatPercent}% VAT.</p>}
         <p>{menu.serviceChargePercent > 0 ? `${menu.serviceChargePercent}% service charge applies.` : "No service charge."}</p>
         <p>Last updated: <time dateTime={menu.updatedAt}>{updated}</time></p>
       </div>

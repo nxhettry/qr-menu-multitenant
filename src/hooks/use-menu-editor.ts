@@ -1,9 +1,9 @@
 "use client";
 import { useCallback, useState, useTransition } from "react";
 import useSWR from "swr";
-import { mutateEditorAction } from "@/app/dashboard/[restaurantId]/actions";
+import { changeVatModeAction, mutateEditorAction } from "@/app/dashboard/[restaurantId]/actions";
 import type { EditorData } from "@/lib/editor/data";
-import type { EditorMutation, MutationResult } from "@/lib/editor/schemas";
+import type { EditorMutation, MutationResult, VatModeInput } from "@/lib/editor/schemas";
 
 export function useMenuEditor(userId: string, restaurantId: string, initialData: EditorData) {
   const { data, error, mutate, isValidating } = useSWR<EditorData>(
@@ -11,11 +11,11 @@ export function useMenuEditor(userId: string, restaurantId: string, initialData:
   );
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<MutationResult>({});
-  const save = useCallback((input: EditorMutation, onSuccess?: () => void) => {
+  const run = useCallback((action: () => Promise<MutationResult>, onSuccess?: () => void) => {
     setResult({});
     startTransition(async () => {
       try {
-        const response = await mutateEditorAction(restaurantId, input);
+        const response = await action();
         setResult(response);
         if (!response.error) {
           onSuccess?.();
@@ -25,6 +25,8 @@ export function useMenuEditor(userId: string, restaurantId: string, initialData:
         setResult({ error: "We couldn’t confirm the save. Refresh your menu before trying again." });
       }
     });
-  }, [restaurantId, mutate]);
-  return { data: error ? undefined : data, error, pending, result, setResult, save, refresh: mutate, isValidating };
+  }, [mutate]);
+  const save = useCallback((input: EditorMutation, onSuccess?: () => void) => run(() => mutateEditorAction(restaurantId, input), onSuccess), [run, restaurantId]);
+  const changeVatMode = useCallback((input: VatModeInput, onSuccess?: () => void) => run(() => changeVatModeAction(restaurantId, input), onSuccess), [run, restaurantId]);
+  return { data: error ? undefined : data, error, pending, result, setResult, save, changeVatMode, refresh: mutate, isValidating };
 }

@@ -6,10 +6,12 @@ import { Field, FormError, eyebrowClass, inputClass, noticeClass, primaryClass, 
 import { DialogFooter } from "@/components/ui/dialog";
 import type { ItemFields } from "./item-form-values";
 import { ItemDetailFields } from "./item-detail-fields";
+import { GuestPriceHint } from "./guest-price-hint";
+import type { VatRule } from "@/lib/menu/vat";
 import { categoryLabel, orderedCategories } from "@/lib/editor/categories";
 
-export function ItemForm({ item, categoryId, categories, pending, error, onSave, onCancel }: {
-  item?: EditorItem; categoryId: string; categories: EditorCategory[]; pending: boolean; error?: string;
+export function ItemForm({ item, categoryId, categories, vat, pending, error, onSave, onCancel }: {
+  item?: EditorItem; categoryId: string; categories: EditorCategory[]; vat: VatRule; pending: boolean; error?: string;
   onSave: (value: ItemInput) => void; onCancel: () => void;
 }) {
   const { register, control, handleSubmit, setError, formState: { errors } } = useForm<ItemFields>({ defaultValues: {
@@ -52,11 +54,11 @@ export function ItemForm({ item, categoryId, categories, pending, error, onSave,
       <details className="text-sm"><summary className="cursor-pointer py-2">Nepali description</summary><textarea {...register("description_ne")} lang="ne" aria-label="Nepali description" className={inputClass} rows={3} maxLength={1000} /></details>
       <p className={`border-t border-line pt-5 ${eyebrowClass}`}>Pricing & portions</p>
       <label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("uses_variants")} type="checkbox" className="h-5 w-5" />Use variants, such as Half / Full or Small / Large</label>
-      {!usesVariants ? <Field label="Price (Rs)"><input {...register("price")} className={inputClass} inputMode="decimal" placeholder="180.00" required /></Field> : <div className="space-y-4">
+      {!usesVariants ? <div><Field label="Price (Rs)"><input {...register("price")} className={inputClass} inputMode="decimal" placeholder="180.00" required /></Field><GuestPriceHint control={control} name="price" vat={vat} /></div> : <div className="space-y-4">
         {fields.map((field, index) => <div key={field.id} className="space-y-3 rounded-xl border border-line bg-surface p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Variant name"><input {...register(`variants.${index}.name`)} className={inputClass} maxLength={100} placeholder="Half plate" required /></Field>
-            <Field label="Price (Rs)"><input {...register(`variants.${index}.price`)} className={inputClass} inputMode="decimal" placeholder="180.00" required /></Field>
+            <div><Field label="Price (Rs)"><input {...register(`variants.${index}.price`)} className={inputClass} inputMode="decimal" placeholder="180.00" required /></Field><GuestPriceHint control={control} name={`variants.${index}.price`} vat={vat} /></div>
           </div>
           <Field label="Nepali variant name (optional)"><input {...register(`variants.${index}.name_ne`)} lang="ne" className={inputClass} maxLength={100} /></Field>
           <label className="flex items-center gap-3 text-sm"><input {...register(`variants.${index}.is_available`)} type="checkbox" className="h-5 w-5" />Available today</label>
@@ -74,7 +76,7 @@ export function ItemForm({ item, categoryId, categories, pending, error, onSave,
       <label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("is_visible")} type="checkbox" className="h-5 w-5" />Show this item on the public menu</label>
       <div className="flex flex-wrap gap-x-6 gap-y-2"><label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("is_popular")} type="checkbox" className="h-5 w-5" />Popular item</label><label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("is_new")} type="checkbox" className="h-5 w-5" />New item</label></div>
       <label className="flex items-start gap-3 rounded-xl bg-brand-soft p-4 text-sm"><input {...register("is_featured")} type="checkbox" className="mt-0.5 h-5 w-5" /><span>Feature in specials banner<span className="mt-1 block text-xs leading-5 text-ink-muted">Choose up to six specials. Their names, prices, and item photos appear at the top of your public menu. Hidden categories and sold-out specials stay out of the banner.</span></span></label>
-      <ItemDetailFields control={control} register={register} />
+      <ItemDetailFields control={control} register={register} vat={vat} />
       {item?.is_example_price && <label className={`${noticeClass("warning")} flex items-start gap-3`}><input {...register("confirm_prices")} type="checkbox" className="mt-1 h-5 w-5" required />I have checked every example price for this item and its variants.</label>}
       <FormError message={errors.root?.message ?? error} />
       <DialogFooter><button disabled={pending} className={primaryClass}>{pending ? "Saving…" : "Save item"}</button><button type="button" onClick={onCancel} className={secondaryClass}>Cancel</button></DialogFooter>

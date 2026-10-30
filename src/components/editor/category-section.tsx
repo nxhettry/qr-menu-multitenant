@@ -8,10 +8,11 @@ import { ActionMenu } from "@/components/ui/action-menu";
 import { MenuIcon } from "@/components/menu/icon";
 import type { MenuEditorActions } from "./menu-actions";
 import { MenuItemEntry } from "./menu-item-entry";
+import type { VatRule } from "@/lib/menu/vat";
 
 type SectionProps = {
   category: EditorCategory; subcategories?: CategoryNode["children"]; siblings: EditorCategory[]; parentVisible: boolean;
-  view: MenuViewMode; actions: MenuEditorActions; isExpanded: (id: string) => boolean; toggle: (id: string) => void;
+  view: MenuViewMode; vat: VatRule; actions: MenuEditorActions; isExpanded: (id: string) => boolean; toggle: (id: string) => void;
 };
 
 const addClass = "inline-flex min-h-11 items-center gap-2 rounded-full border border-dashed border-line-strong px-4 text-sm font-medium text-ink-muted transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50";
@@ -22,7 +23,7 @@ function summary(category: EditorCategory, subcategories: EditorCategory[] | und
   return [plural(items, "item", "items"), subcategories?.length ? plural(subcategories.length, "subcategory", "subcategories") : ""].filter(Boolean).join(" · ");
 }
 
-export const CategorySection = memo(function CategorySection({ category, subcategories, siblings, parentVisible, view, actions, isExpanded, toggle }: SectionProps) {
+export const CategorySection = memo(function CategorySection({ category, subcategories, siblings, parentVisible, view, vat, actions, isExpanded, toggle }: SectionProps) {
   const nested = !!category.parent_id;
   const open = isExpanded(category.id);
   const visible = category.is_visible && parentVisible;
@@ -61,12 +62,12 @@ export const CategorySection = memo(function CategorySection({ category, subcate
     </header>
     {open && <div id={bodyId} className={`border-t px-3 pb-3 sm:px-4 sm:pb-4 ${nested ? "border-line/70" : "border-line"}`}>
       {category.items.length > 0 && <ul className={view === "grid" ? "grid grid-cols-2 gap-3 pt-3 sm:grid-cols-3" : "divide-y divide-line"}>
-        {category.items.map((item, index) => <MenuItemEntry key={item.id} item={item} category={category} index={index} view={view} actions={actions} />)}
+        {category.items.map((item, index) => <MenuItemEntry key={item.id} item={item} category={category} index={index} view={view} vat={vat} actions={actions} />)}
       </ul>}
       {!category.items.length && !subcategories?.length && <p className="pt-4 text-sm text-ink-muted">No items yet.</p>}
       <div className="pt-3"><button type="button" disabled={disabled} onClick={() => actions.addItem(category.id)} className={addClass}>+ Add item</button></div>
       {subcategories && <div className="mt-4 space-y-3">
-        {subcategories.map(child => <CategorySection key={child.id} category={child} siblings={subcategories} parentVisible={visible} view={view} actions={actions} isExpanded={isExpanded} toggle={toggle} />)}
+        {subcategories.map(child => <CategorySection key={child.id} category={child} siblings={subcategories} parentVisible={visible} view={view} vat={vat} actions={actions} isExpanded={isExpanded} toggle={toggle} />)}
         <button type="button" disabled={disabled} onClick={() => actions.addSubcategory(category.id)} className={addClass}>+ Add subcategory</button>
       </div>}
     </div>}

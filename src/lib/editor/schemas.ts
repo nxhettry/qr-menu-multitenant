@@ -25,6 +25,7 @@ export const settingsInput = restaurantSchema.extend({
   vat_percent: z.number().min(0).max(100), service_charge_percent: z.number().min(0).max(100),
   opening_hours: z.record(z.string().min(1).max(40), z.string().max(100)).refine(value => Object.keys(value).length <= 14),
 });
+export const vatModeInput = z.object({ prices_include_vat: z.boolean(), convert_prices: z.boolean() });
 export const editorMutation = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("importItems"), payload: z.object({ request_id: z.uuid(), items: z.array(z.object({
     category: z.string().trim().min(1).max(100), subcategory: z.string().trim().max(100),
@@ -45,6 +46,7 @@ export type EditorMutation = z.infer<typeof editorMutation>;
 export type CategoryInput = z.infer<typeof categoryInput>;
 export type ItemInput = z.infer<typeof itemInput>;
 export type SettingsInput = z.infer<typeof settingsInput>;
+export type VatModeInput = z.infer<typeof vatModeInput>;
 export type MutationResult = { error?: string; message?: string; warning?: string };
 
 export function parsePrice(value: string) {

@@ -3,6 +3,49 @@ import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright-core";
 import { checkBulkMenuBrowser } from "./check-bulk-menu-browser.mjs";
 
+async function checkVatModeBrowser({ page, save }) {
+  const fits = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+  const settingsTab = page.getByRole("navigation", { name: "Restaurant workspace" }).getByRole("button", { name: "Settings & images", exact: true });
+  const vatRate = page.getByLabel("VAT rate (%)", { exact: true });
+  await vatRate.waitFor();
+  assert(await fits(), "VAT settings must fit a phone viewport");
+  await vatRate.fill("14");
+  assert(await page.getByRole("radio", { name: /Excluding VAT/ }).isDisabled(), "mode change must wait for an unsaved VAT rate");
+  await vatRate.fill("13");
+  await page.getByRole("radio", { name: /Excluding VAT/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Switch to prices excluding VAT" });
+  await dialog.waitFor();
+  assert(await fits(), "VAT dialog must fit a phone viewport");
+  await dialog.getByText("Phone momo").first().waitFor();
+  assert((await dialog.locator("li").first().innerText()).includes("→"), "preview rows must show before and after prices");
+  await mkdir("artifacts", { recursive: true });
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: "artifacts/vat-dialog-mobile.png" });
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await dialog.waitFor({ state: "detached" });
+  assert(await page.getByRole("radio", { name: /Including VAT/ }).isChecked(), "cancelling must keep the saved mode");
+  await page.getByRole("radio", { name: /Excluding VAT/ }).click();
+  await dialog.getByRole("radio", { name: /Keep my numbers/ }).check();
+  await dialog.getByText("will look different to guests").waitFor();
+  await dialog.getByRole("radio", { name: /Keep what guests pay/ }).check();
+  await save(dialog.getByRole("button", { name: "Apply change", exact: true }));
+  await dialog.waitFor({ state: "detached" });
+  assert(await page.getByRole("radio", { name: /Excluding VAT/ }).isChecked(), "saved mode must be reflected after conversion");
+  await page.getByRole("navigation", { name: "Restaurant workspace" }).getByRole("button", { name: "Menu", exact: true }).click();
+  const guestHint = page.getByText(/Guests pay Rs/).first();
+  await guestHint.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: "artifacts/vat-editor-exclusive-mobile.png" });
+  await settingsTab.click();
+  await page.getByRole("radio", { name: /Including VAT/ }).click();
+  const back = page.getByRole("dialog", { name: "Switch to prices including VAT" });
+  await back.getByRole("radio", { name: /Keep my numbers/ }).check();
+  await save(back.getByRole("button", { name: "Apply change", exact: true }));
+  await back.waitFor({ state: "detached" });
+  assert(await page.getByRole("radio", { name: /Including VAT/ }).isChecked());
+  console.log("PASS mobile VAT mode dialog previews both strategies, converts prices, shows guest prices in the editor and fits 390px");
+}
+
 export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }) {
   const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? (process.platform === "win32" ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : undefined) });
   try {
@@ -123,6 +166,7 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     await page.getByLabel("Theme color", { exact: false }).fill("#ffffff");
     await save(page.getByRole("button", { name: "Save settings", exact: true }));
     await page.getByRole("heading", { name: "Browser Kitchen", exact: true }).waitFor();
+    await checkVatModeBrowser({ page, save });
     const old = await fetch(`${base}/renamed-kitchen`, { redirect: "manual" });
     assert.equal(old.status, 301);
     assert.equal(new URL(old.headers.get("location"), base).pathname, "/browser-kitchen");

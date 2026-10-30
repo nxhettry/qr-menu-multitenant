@@ -1,15 +1,16 @@
 "use client";
 import { useState } from "react";
 import type { MenuItem } from "@/lib/menu/schema";
-import { formatPrice } from "@/lib/menu/presentation";
+import { formatPrice, guestPrice } from "@/lib/menu/presentation";
+import type { VatRule } from "@/lib/menu/vat";
 import { MenuPhoto } from "./photo";
 import { MenuIcon } from "./icon";
 import { fieldVisible } from "@/lib/menu/visibility";
 
 const roundButton = "flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md transition-colors hover:bg-white/25";
 
-export function SpecialsBanner({ specials, coverPublicId, coverVersion }: {
-  specials: { item: MenuItem; categoryName: string }[]; coverPublicId: string | null; coverVersion: number | null;
+export function SpecialsBanner({ specials, coverPublicId, coverVersion, vat }: {
+  specials: { item: MenuItem; categoryName: string }[]; coverPublicId: string | null; coverVersion: number | null; vat: VatRule;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const index = Math.max(0, specials.findIndex(({ item }) => item.id === activeId));
@@ -27,7 +28,7 @@ export function SpecialsBanner({ specials, coverPublicId, coverVersion }: {
       <h2 className="mt-3 max-w-[85%] break-words text-[28px] font-semibold leading-[1.1] tracking-tight sm:max-w-[60%] sm:text-[42px]">{item?.name ?? "Good food. Great company."}</h2>
       {item?.description && <p className="mt-2 line-clamp-2 max-w-[85%] text-[13px] leading-5 text-white/80 sm:max-w-[50%] sm:text-sm">{item.description}</p>}
       <div className="mt-4 flex w-full flex-wrap items-center gap-x-5 gap-y-3">
-        {price !== null && <p className="text-xl font-semibold tabular-nums sm:text-2xl">{item?.priceMinor === null ? <span className="mr-1 text-sm font-medium text-white/75">From</span> : null}{formatPrice(price)}</p>}
+        {price !== null && <p className="text-xl font-semibold tabular-nums sm:text-2xl">{item?.priceMinor === null ? <span className="mr-1 text-sm font-medium text-white/75">From</span> : null}{formatPrice(guestPrice(price, vat))}</p>}
         <a href={item ? `#dish-${item.id}` : "#menu-items"} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white px-4 text-xs font-semibold text-stone-900 transition-transform hover:scale-[1.02]">{item ? "Explore this dish" : "Explore the menu"}<MenuIcon name="arrow" className="h-3.5 w-3.5" /></a>
       </div>
     </div>

@@ -1,3 +1,5 @@
+export { guestPrice } from "./vat.ts";
+
 export function formatPrice(priceMinor: number) {
   return `Rs ${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(priceMinor / 100)}`;
 }

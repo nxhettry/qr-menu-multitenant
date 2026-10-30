@@ -1,5 +1,6 @@
 import type { MenuItem } from "@/lib/menu/schema";
-import { formatPrice } from "@/lib/menu/presentation";
+import { formatPrice, guestPrice } from "@/lib/menu/presentation";
+import type { VatRule } from "@/lib/menu/vat";
 import { itemAvailable } from "@/lib/menu/filter";
 import { DietBadge } from "./diet-badge";
 import { MenuPhoto } from "./photo";
@@ -11,7 +12,7 @@ const spiceLabels = ["No spice", "Mild", "Medium spice", "Hot"];
 const pill = "rounded-full px-2 py-0.5 text-[10px] font-semibold";
 const overlayPill = "absolute rounded-full px-2.5 py-1 text-[10px] font-semibold shadow-sm backdrop-blur-md";
 
-export function MenuItemCard({ item }: { item: MenuItem }) {
+export function MenuItemCard({ item, vat }: { item: MenuItem; vat: VatRule }) {
   const available = itemAvailable(item);
   const photos = fieldVisible(item.details, "photos");
   const special = item.isFeatured && fieldVisible(item.details, "badges");
@@ -35,15 +36,15 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
         {!photos && special && <span className={`${pill} bg-brand-soft text-brand`}>House special</span>}
       </div>}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        {item.priceMinor !== null && <span className="text-[15px] font-semibold tabular-nums text-accent sm:text-base">{formatPrice(item.priceMinor)}</span>}
+        {item.priceMinor !== null && <span className="text-[15px] font-semibold tabular-nums text-accent sm:text-base">{formatPrice(guestPrice(item.priceMinor, vat))}</span>}
         <DietBadge diet={item.diet} />
       </div>
       {!!item.variants.length && <dl className="mt-3 space-y-1.5 rounded-xl bg-surface-muted p-2.5">{item.variants.map(variant => <div key={variant.id} className="flex flex-wrap justify-between gap-x-2 text-xs leading-5">
         <dt className="break-words text-ink-muted">{variant.name}{variant.nameNe && <span lang="ne" className="ml-1">{variant.nameNe}</span>}{(!item.isAvailable || !variant.isAvailable) && <span className="ml-1 font-medium text-ink-subtle">(Sold out)</span>}</dt>
-        <dd className="font-semibold tabular-nums text-accent">{formatPrice(variant.priceMinor)}</dd>
+        <dd className="font-semibold tabular-nums text-accent">{formatPrice(guestPrice(variant.priceMinor, vat))}</dd>
       </div>)}</dl>}
       {item.spiceLevel !== null && <p className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted"><MenuIcon name="flame" className="h-3.5 w-3.5 text-non-veg" />{spiceLabels[item.spiceLevel]}</p>}
-      <ItemExtras details={item.details} />
+      <ItemExtras details={item.details} vat={vat} />
     </div>
   </article>;
 }

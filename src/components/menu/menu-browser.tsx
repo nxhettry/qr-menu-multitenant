@@ -1,6 +1,8 @@
 "use client";
+import { useMemo } from "react";
 import type { PublishedMenu } from "@/lib/menu/schema";
 import { usePublicMenu } from "@/hooks/use-public-menu";
+import type { VatRule } from "@/lib/menu/vat";
 import { MenuItemCard } from "./item-card";
 import { MenuIcon } from "./icon";
 import { SpecialsBanner } from "./specials-banner";
@@ -12,6 +14,7 @@ const scrollRow = "-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] 
 
 export function MenuBrowser({ menu }: { menu: PublishedMenu }) {
   const { query, setQuery, selection, setSelection, subcategory, setSubcategory, subcategories, filtered, specials, searching } = usePublicMenu(menu.categories);
+  const vat = useMemo<VatRule>(() => ({ pricesIncludeVat: menu.pricesIncludeVat, vatPercent: menu.vatPercent }), [menu.pricesIncludeVat, menu.vatPercent]);
   const count = filtered.reduce((total, category) => total + category.items.length, 0);
   const searchingText = !!query.trim();
   const heading = searchingText ? "Search results" : selection === "specials" ? "House specials" : selection === "all" ? "Discover our menu" : menu.categories.find(category => category.id === selection)?.name;
@@ -32,7 +35,7 @@ export function MenuBrowser({ menu }: { menu: PublishedMenu }) {
         {subcategories.map(name => <button key={name} aria-pressed={subcategory === name} onClick={() => setSubcategory(name)} className={subChipClass(subcategory === name)}>{name}</button>)}
       </nav>}
     </div>
-    {!searchingText && !subcategory && (selection === "all" || selection === "specials") && <SpecialsBanner specials={specials} coverPublicId={menu.coverPublicId} coverVersion={menu.coverVersion} />}
+    {!searchingText && !subcategory && (selection === "all" || selection === "specials") && <SpecialsBanner specials={specials} vat={vat} coverPublicId={menu.coverPublicId} coverVersion={menu.coverVersion} />}
     <div id="menu-items" aria-busy={searching} className="scroll-mt-64">
       <div className="mb-5 mt-7 flex items-end justify-between gap-3">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-[28px]">{heading}</h2>
@@ -50,7 +53,7 @@ export function MenuBrowser({ menu }: { menu: PublishedMenu }) {
           {category.nameNe && <p lang="ne" className="text-xs text-ink-subtle">{category.nameNe}</p>}
           <span className="ml-auto text-xs text-ink-subtle">{category.items.length}</span>
         </div>}
-        <div className="grid grid-cols-2 items-start gap-3 sm:gap-5 lg:grid-cols-3">{category.items.map(item => <MenuItemCard key={item.id} item={item} />)}</div>
+        <div className="grid grid-cols-2 items-start gap-3 sm:gap-5 lg:grid-cols-3">{category.items.map(item => <MenuItemCard key={item.id} item={item} vat={vat} />)}</div>
       </section>)}
     </div>
   </div>;

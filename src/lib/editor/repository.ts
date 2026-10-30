@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { TenantContext } from "@/lib/tenancy/context";
 import { can } from "@/lib/tenancy/context";
 import { editorDataSchema } from "./data";
-import type { EditorMutation } from "./schemas";
+import type { EditorMutation, VatModeInput } from "./schemas";
 import { z } from "zod";
 
 export class MenuEditError extends Error {}
@@ -36,13 +36,12 @@ const safeMessages = new Set([
   "Add an item to a visible category before publishing", "Move or remove the items in this category first",
   "The menu changed. Refresh before reordering", "Category limit reached", "Item limit reached",
   "Daily image upload limit reached. Try again tomorrow", "Confirm example prices before adding them to a published menu",
+  "A converted price would exceed the maximum",
 ]);
 
-export async function executeMenuMutation(context: TenantContext, operation: string, payload: unknown, management = false) {
+async function callMenuRpc(context: TenantContext, management: boolean, call: (supabase: Awaited<ReturnType<typeof createClient>>) => PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>) {
   if (!can(context, management ? "restaurant:manage" : "menu:edit")) throw new MenuEditError("You don’t have permission to make this change, or editing is locked.");
-  const { data, error } = await (await createClient()).rpc("mutate_menu", {
-    p_restaurant_id: context.restaurantId, p_operation: operation, p_payload: payload,
-  });
+  const { data, error } = await call(await createClient());
   if (error) {
     if (error.code === "P0002") throw new MenuEditError("The menu entry was not found. Refresh your menu.");
     if (error.code === "42501") throw new MenuEditError("You don’t have permission to make this change, or editing is locked.");
@@ -52,4 +51,16 @@ export async function executeMenuMutation(context: TenantContext, operation: str
     throw new MenuEditError("We couldn’t save this change. Your previous menu is still intact.");
   }
   return mutationReceipt.parse(data);
+}
+
+export function executeMenuMutation(context: TenantContext, operation: string, payload: unknown, management = false) {
+  return callMenuRpc(context, management, supabase => supabase.rpc("mutate_menu", {
+    p_restaurant_id: context.restaurantId, p_operation: operation, p_payload: payload,
+  }));
+}
+
+export function changeVatMode(context: TenantContext, input: VatModeInput) {
+  return callMenuRpc(context, true, supabase => supabase.rpc("change_vat_mode", {
+    p_restaurant_id: context.restaurantId, p_include_vat: input.prices_include_vat, p_convert: input.convert_prices,
+  }));
 }
