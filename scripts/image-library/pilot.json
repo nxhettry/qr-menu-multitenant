@@ -1,0 +1,179 @@
+[
+  {
+    "slug": "chicken-momo",
+    "description": "eight steamed Nepali chicken momo dumplings, round pleated tops, with a small bowl of red tomato achar dipping sauce",
+    "vessel": "on a steel plate",
+    "covers": [
+      "buff-momo",
+      "pork-momo",
+      "mutton-momo"
+    ]
+  },
+  {
+    "slug": "chicken-jhol-momo",
+    "description": "Nepali chicken jhol momo, steamed dumplings sitting in a thin orange-brown spiced sesame-tomato soup, topped with chopped coriander",
+    "vessel": "in a deep white bowl",
+    "angle": "top-down",
+    "covers": [
+      "steam-jhol-momo",
+      "buff-jhol-momo",
+      "veg-jhol-momo"
+    ]
+  },
+  {
+    "slug": "chicken-chowmein",
+    "description": "Nepali street-style chicken chowmein, stir-fried noodles with shredded chicken, cabbage, carrot and spring onion",
+    "vessel": "on a white plate",
+    "angle": "45 degree",
+    "covers": [
+      "buff-chowmein",
+      "mutton-chowmein",
+      "pork-chowmein",
+      "mixed-chowmein",
+      "egg-chowmein"
+    ]
+  },
+  {
+    "slug": "chicken-thukpa",
+    "description": "Himalayan chicken thukpa, noodle soup with shredded chicken, spinach, carrot and a clear golden broth",
+    "vessel": "in a deep ceramic bowl with a steel spoon",
+    "angle": "top-down",
+    "covers": [
+      "buff-thukpa",
+      "mutton-thukpa",
+      "mixed-thukpa",
+      "egg-thukpa"
+    ]
+  },
+  {
+    "slug": "nepali-veg-thali",
+    "description": "a Nepali vegetarian dal bhat thali: mound of white rice, yellow dal in a small bowl, mixed vegetable curry, saag greens, potato tarkari, tomato achar, papad and a lemon wedge",
+    "vessel": "on a round steel thali plate with small steel bowls",
+    "angle": "top-down",
+    "covers": [
+      "nepali-egg-thali"
+    ]
+  },
+  {
+    "slug": "chatamari-plain",
+    "description": "Newari chatamari, a thin crisp rice-flour crepe topped with spiced minced meat, egg, onion and coriander, cut into wedges",
+    "vessel": "on a leaf plate",
+    "angle": "top-down",
+    "surface": "dark wooden",
+    "covers": [
+      "chatamari-egg",
+      "chatamari-minced-meat",
+      "chatamari-veg",
+      "chatamari-cheese"
+    ]
+  },
+  {
+    "slug": "yomari",
+    "description": "three Newari yomari, fig-shaped steamed rice-flour dumplings with a pointed tip, glossy white, one cut open to show chaku and sesame filling",
+    "vessel": "on a banana leaf",
+    "surface": "dark wooden",
+    "covers": [
+      "chaku-yomari",
+      "khoya-yomari"
+    ]
+  },
+  {
+    "slug": "sel-roti",
+    "description": "Nepali sel roti, a ring-shaped golden-brown crisp fried rice-flour bread, stacked three high",
+    "vessel": "on a steel plate",
+    "angle": "45 degree"
+  },
+  {
+    "slug": "buff-choila",
+    "description": "Newari buff choila, spicy grilled buffalo meat pieces mixed with ginger, garlic, chilli, fenugreek and mustard oil, with chopped coriander",
+    "vessel": "in a small steel bowl",
+    "angle": "45 degree",
+    "surface": "dark wooden",
+    "covers": [
+      "chicken-choila",
+      "mutton-choila",
+      "bhuttan-choila"
+    ]
+  },
+  {
+    "slug": "chicken-sekuwa",
+    "description": "Nepali chicken sekuwa, charcoal-grilled marinated chicken pieces on skewers with red onion and lemon wedges",
+    "vessel": "on a steel plate",
+    "angle": "45 degree",
+    "surface": "dark wooden",
+    "covers": [
+      "chicken-chilli-sekuwa"
+    ]
+  },
+  {
+    "slug": "chatpate",
+    "description": "Nepali chatpate street snack, puffed rice mixed with chopped onion, tomato, green chilli, coriander, peanuts, lemon and spices",
+    "vessel": "in a rolled paper cone and a small steel bowl",
+    "angle": "45 degree"
+  },
+  {
+    "slug": "panipuri",
+    "description": "Nepali panipuri, six crisp hollow puri shells filled with chickpea and potato, with a glass of green spiced mint water",
+    "vessel": "on a steel plate",
+    "angle": "45 degree"
+  },
+  {
+    "slug": "veg-samosa",
+    "description": "two golden fried triangular vegetable samosas, one broken to show a spiced potato and pea filling, with green chutney",
+    "vessel": "on a white plate",
+    "angle": "45 degree"
+  },
+  {
+    "slug": "chicken-biryani",
+    "description": "chicken biryani, saffron-tinted long-grain basmati rice layered with spiced chicken pieces, fried onion and mint, with a small bowl of raita",
+    "vessel": "in a steel handi bowl",
+    "angle": "45 degree",
+    "covers": [
+      "egg-biryani",
+      "hyderabadi-chicken-biryani"
+    ]
+  },
+  {
+    "slug": "paneer-butter-masala",
+    "description": "paneer butter masala, cubes of paneer in a creamy orange tomato gravy with a swirl of cream and coriander",
+    "vessel": "in a copper karahi bowl, with a side of butter naan",
+    "angle": "45 degree"
+  },
+  {
+    "slug": "milk-tea",
+    "description": "Nepali milk tea (chiya), creamy light brown masala tea with a thin skin of milk",
+    "vessel": "in a small glass cup on a saucer, with steam rising",
+    "angle": "eye-level"
+  },
+  {
+    "slug": "mango-lassi",
+    "description": "mango lassi, thick golden yellow yoghurt drink with a mint leaf and a few mango cubes on top",
+    "vessel": "in a tall clear glass with a steel straw",
+    "angle": "eye-level"
+  },
+  {
+    "slug": "chicken-burger",
+    "description": "a chicken burger with a sesame bun, crispy chicken patty, lettuce, tomato and sauce, with a few fries on the side",
+    "vessel": "on a wooden board",
+    "angle": "eye-level",
+    "covers": [
+      "buff-burger",
+      "crispy-chicken-burger"
+    ]
+  },
+  {
+    "slug": "margherita-pizza",
+    "description": "a whole margherita pizza with melted mozzarella, tomato sauce and basil leaves, one slice slightly pulled away",
+    "vessel": "on a round metal pizza tray",
+    "angle": "top-down",
+    "covers": [
+      "cheese-pizza"
+    ]
+  },
+  {
+    "slug": "gulab-jamun",
+    "description": "three glossy dark-brown gulab jamun in light sugar syrup, garnished with pistachio slivers",
+    "vessel": "in a small white bowl",
+    "angle": "45 degree"
+  }
+]

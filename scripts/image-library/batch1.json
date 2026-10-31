@@ -1,0 +1,1409 @@
+[
+ {
+  "slug": "veg-momo",
+  "description": "steamed vegetable momo, crescent-shaped half-moon dumplings with thin translucent wrappers showing green cabbage and carrot filling, with red tomato achar",
+  "vessel": "on a steel plate",
+  "covers": [
+   "paneer-momo",
+   "mushroom-momo",
+   "cheese-momo"
+  ]
+ },
+ {
+  "slug": "chicken-fry-momo",
+  "description": "crispy golden pan-fried Nepali chicken momo, browned and crunchy on the bottom, with a bowl of red achar",
+  "vessel": "on a steel plate",
+  "covers": [
+   "buff-fry-momo",
+   "veg-fry-momo",
+   "paneer-fry-momo",
+   "mutton-fry-momo"
+  ]
+ },
+ {
+  "slug": "chicken-kothey-momo",
+  "description": "Nepali kothey momo, half-moon dumplings pan-fried on one side to golden brown and steamed on the other, with achar",
+  "vessel": "on a steel plate",
+  "covers": [
+   "buff-kothey-momo",
+   "veg-kothey-momo",
+   "pork-kothey-momo"
+  ]
+ },
+ {
+  "slug": "chicken-chilli-momo",
+  "description": "chilli momo, fried momo tossed in a glossy red-orange sauce with green capsicum, onion and spring onion",
+  "vessel": "in a white bowl",
+  "covers": [
+   "buff-chilli-momo",
+   "veg-chilli-momo",
+   "paneer-chilli-momo"
+  ]
+ },
+ {
+  "slug": "chicken-tandoori-momo",
+  "description": "tandoori momo, momo coated in red-orange tandoori masala with lightly charred edges, sliced onion and mint chutney",
+  "vessel": "on a steel plate"
+ },
+ {
+  "slug": "chicken-afghani-momo",
+  "description": "afghani momo, momo coated in a creamy white-ivory sauce with a sprinkle of black pepper and coriander",
+  "vessel": "in a white bowl"
+ },
+ {
+  "slug": "chicken-sadheko-momo",
+  "description": "sadheko momo, steamed momo mixed with chopped onion, tomato, green chilli, coriander and red chilli oil",
+  "vessel": "in a steel bowl"
+ },
+ {
+  "slug": "buff-c-momo",
+  "description": "C momo, steamed momo in a thick red-orange spicy sauce with chopped onion and coriander",
+  "vessel": "in a white bowl",
+  "covers": [
+   "chicken-c-momo"
+  ]
+ },
+ {
+  "slug": "veg-chowmein",
+  "description": "Nepali vegetable chowmein, stir-fried noodles with cabbage, carrot, capsicum and spring onion",
+  "vessel": "on a white plate",
+  "covers": [
+   "paneer-chowmein"
+  ]
+ },
+ {
+  "slug": "schezwan-chowmein",
+  "description": "schezwan chowmein, dark red-brown stir-fried noodles with chilli sauce, capsicum and spring onion, glossy and spicy-looking",
+  "vessel": "on a white plate"
+ },
+ {
+  "slug": "hakka-noodles",
+  "description": "hakka noodles, thin stir-fried noodles with julienned cabbage, carrot, capsicum and spring onion",
+  "vessel": "on a white plate",
+  "covers": [
+   "chicken-hakka-noodles"
+  ]
+ },
+ {
+  "slug": "veg-thukpa",
+  "description": "vegetable thukpa, Himalayan noodle soup with cabbage, carrot, spinach and spring onion in a golden broth",
+  "vessel": "in a deep ceramic bowl",
+  "angle": "top-down"
+ },
+ {
+  "slug": "chicken-thenthuk",
+  "description": "thenthuk, Himalayan hand-pulled flat wide noodle pieces in a chicken broth with shredded chicken, spinach and tomato",
+  "vessel": "in a deep ceramic bowl",
+  "angle": "top-down",
+  "covers": [
+   "veg-thenthuk",
+   "buff-thenthuk"
+  ]
+ },
+ {
+  "slug": "wai-wai-sadeko",
+  "description": "Nepali wai wai sadeko, crunchy instant noodles mixed with chopped onion, tomato, cucumber, green chilli, coriander, lemon and red chilli powder",
+  "vessel": "in a steel bowl"
+ },
+ {
+  "slug": "chicken-clear-soup",
+  "description": "chicken clear soup, light golden clear broth with tiny pieces of shredded chicken, carrot and spring onion",
+  "vessel": "in a white soup bowl with a spoon",
+  "angle": "top-down",
+  "covers": [
+   "chicken-soup",
+   "bone-soup"
+  ]
+ },
+ {
+  "slug": "chicken-sweet-corn-soup",
+  "description": "sweet corn soup, thick pale yellow soup with corn kernels, shredded chicken and thin egg ribbons",
+  "vessel": "in a white soup bowl with a spoon",
+  "angle": "top-down",
+  "covers": [
+   "veg-sweet-corn-soup",
+   "egg-drop-soup"
+  ]
+ },
+ {
+  "slug": "chicken-hot-and-sour-soup",
+  "description": "hot and sour soup, dark brown-red thick soup with shredded vegetables, mushroom, egg ribbon and a sprinkle of spring onion",
+  "vessel": "in a white soup bowl",
+  "angle": "top-down",
+  "covers": [
+   "veg-hot-and-sour-soup",
+   "chicken-manchow-soup",
+   "veg-manchow-soup"
+  ]
+ },
+ {
+  "slug": "tomato-soup",
+  "description": "creamy red tomato soup with a swirl of cream, basil leaf and a few bread croutons",
+  "vessel": "in a white soup bowl on a saucer",
+  "angle": "top-down",
+  "covers": [
+   "cream-of-tomato-soup"
+  ]
+ },
+ {
+  "slug": "wonton-soup",
+  "description": "wonton soup, clear broth with six pleated wontons, bok choy and spring onion",
+  "vessel": "in a white bowl with a spoon",
+  "angle": "top-down"
+ },
+ {
+  "slug": "lentil-soup-dal-soup",
+  "description": "yellow dal lentil soup, thin golden lentil broth garnished with coriander and a drizzle of ghee",
+  "vessel": "in a steel bowl",
+  "angle": "top-down"
+ },
+ {
+  "slug": "nepali-chicken-thali",
+  "description": "a Nepali chicken thali: white rice mound, yellow dal in a small bowl, chicken curry in a bowl, saag greens, potato tarkari, tomato achar, papad and a lemon wedge",
+  "vessel": "on a round steel thali plate with small steel bowls",
+  "angle": "top-down",
+  "covers": [
+   "nepali-mutton-thali",
+   "nepali-buff-thali",
+   "nepali-pork-thali"
+  ]
+ },
+ {
+  "slug": "nepali-fish-thali",
+  "description": "a Nepali fish thali: white rice, yellow dal, a bowl of fish curry with a fish piece, saag, potato tarkari, achar and a lemon wedge",
+  "vessel": "on a round steel thali plate with small steel bowls",
+  "angle": "top-down"
+ },
+ {
+  "slug": "dal-bhat-tarkari",
+  "description": "classic Nepali dal bhat tarkari: white rice, yellow dal, mixed vegetable curry, green saag and a small pickle, simple home style",
+  "vessel": "on a steel plate",
+  "angle": "top-down",
+  "covers": [
+   "dal-bhat-with-achar",
+   "special-dal-bhat-set",
+   "mini-meal-set"
+  ]
+ },
+ {
+  "slug": "thakali-khana-set",
+  "description": "a Thakali khana set: rice, thin dal, gundruk, spiced vegetable curry, a meat curry, tomato achar with timur, saag and ghee, arranged in small copper and steel bowls on a large round plate",
+  "vessel": "on a large brass thali",
+  "angle": "top-down",
+  "covers": [
+   "thakali-veg-set",
+   "thakali-chicken-set",
+   "thakali-mutton-set"
+  ]
+ },
+ {
+  "slug": "newari-khaja-set",
+  "description": "a Newari khaja set: beaten rice (baji), choila meat, boiled egg, spiced potato achar, black soybean, pickled radish, ginger slices and a small bowl of spicy sauce",
+  "vessel": "on a leaf plate",
+  "angle": "top-down",
+  "surface": "dark wooden"
+ },
+ {
+  "slug": "dhido-set",
+  "description": "a Nepali dhido set: a round mound of brown millet dhido with a dimple of ghee, bowl of dal, gundruk curry and tomato achar",
+  "vessel": "on a steel plate with steel bowls",
+  "angle": "top-down",
+  "covers": [
+   "dhido-chicken-set",
+   "dhido-gundruk-set"
+  ]
+ },
+ {
+  "slug": "dal-fry",
+  "description": "dal fry, yellow lentils tempered with garlic, cumin and red chilli, garnished with coriander",
+  "vessel": "in a steel bowl",
+  "angle": "top-down",
+  "covers": [
+   "dal-tadka",
+   "mixed-dal",
+   "masoor-dal",
+   "moong-dal",
+   "chana-dal"
+  ]
+ },
+ {
+  "slug": "black-dal-kalo-dal",
+  "description": "Nepali kalo dal, thick dark black lentil curry with a drizzle of ghee and coriander",
+  "vessel": "in a steel bowl",
+  "angle": "top-down"
+ },
+ {
+  "slug": "rajma-masala",
+  "description": "rajma masala, red kidney beans in a thick spiced tomato gravy with coriander",
+  "vessel": "in a copper bowl",
+  "angle": "top-down"
+ },
+ {
+  "slug": "aloo-tama-bodi",
+  "description": "Nepali aloo tama bodi, a sour curry of potato, fermented bamboo shoot and black-eyed beans in a thin golden-brown gravy",
+  "vessel": "in a steel bowl",
+  "angle": "top-down"
+ },
+ {
+  "slug": "aloo-dum",
+  "description": "aloo dum, baby potatoes in a dark red-brown spicy gravy with coriander",
+  "vessel": "in a copper karahi bowl",
+  "angle": "top-down"
+ },
+ {
+  "slug": "aloo-gobi",
+  "description": "aloo gobi, dry-style yellow turmeric curry of potato and cauliflower florets with coriander",
+  "vessel": "in a steel bowl",
+  "angle": "top-down",
+  "covers": [
+   "mixed-vegetable-curry",
+   "cauliflower-curry"
+  ]
+ },
+ {
+  "slug": "bhindi-masala",
+  "description": "bhindi masala, sauteed okra with onion and tomato in a dry spiced masala",
+  "vessel": "in a steel bowl",
+  "angle": "top-down"
+ },
+ {
+  "slug": "mushroom-masala",
+  "description": "mushroom masala, button mushrooms in a thick brown onion-tomato gravy with coriander",
+  "vessel": "in a copper bowl",
+  "angle": "top-down"
+ },
+ {
+  "slug": "chana-masala",
+  "description": "chana masala, chickpeas in a thick spiced brown-orange gravy topped with ginger strips and coriander",
+  "vessel": "in a steel bowl",
+  "angle": "top-down",
+  "covers": [
+   "chole"
+  ]
+ },
+ {
+  "slug": "chicken-curry",
+  "description": "Nepali chicken curry, bone-in chicken pieces in a golden-orange spiced gravy with a glossy oil sheen and coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "chicken-masala",
+   "local-chicken-curry-desi-kukhura",
+   "kukhura-ko-masu-jhol"
+  ]
+ },
+ {
+  "slug": "mutton-curry",
+  "description": "Nepali khasi mutton curry, bone-in goat meat pieces in a dark rich red-brown gravy with coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "mutton-masala"
+  ]
+ },
+ {
+  "slug": "buff-curry",
+  "description": "Nepali buff curry, buffalo meat chunks in a thick brown spiced gravy with coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "buff-masala"
+  ]
+ },
+ {
+  "slug": "pork-curry",
+  "description": "Nepali pork curry, pork pieces with fat in a deep orange-brown gravy with green chilli and coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "fish-curry",
+  "description": "Nepali fish curry, pieces of fried river fish in a thin golden-yellow spiced gravy with coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "egg-curry",
+  "description": "egg curry, halved boiled eggs in an orange-red onion-tomato gravy with coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "egg-masala"
+  ]
+ },
+ {
+  "slug": "chicken-65",
+  "description": "chicken 65, bright red crispy fried chicken pieces with curry leaves, green chilli and a lemon wedge",
+  "vessel": "on a white plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "bara-wo-plain",
+  "description": "Newari wo (bara), round flat lentil pancakes with a crisp edge, one topped with fried egg and minced meat, with a small bowl of pickle",
+  "vessel": "on a leaf plate",
+  "angle": "top-down",
+  "surface": "dark wooden",
+  "covers": [
+   "egg-wo",
+   "minced-meat-wo"
+  ]
+ },
+ {
+  "slug": "samay-baji-set",
+  "description": "samay baji, a Newari feast plate: beaten rice in the centre, roasted buffalo meat, boiled egg, black soybeans, ginger slices, pickled radish and spicy potato achar in small portions",
+  "vessel": "on a leaf plate",
+  "angle": "top-down",
+  "surface": "dark wooden",
+  "covers": [
+   "samay-baji-veg-set",
+   "newari-chiura-platter",
+   "beaten-rice-baji"
+  ]
+ },
+ {
+  "slug": "buff-kachila",
+  "description": "Newari kachila, seasoned minced buffalo meat patty topped with mustard oil, ginger, chilli and coriander",
+  "vessel": "on a leaf plate",
+  "angle": "45 degree",
+  "surface": "dark wooden"
+ },
+ {
+  "slug": "choyela",
+  "description": "Newari choyela, spicy grilled buffalo meat pieces with ginger, garlic, red chilli, mustard oil and chopped coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "surface": "dark wooden",
+  "covers": [
+   "chhoyela-platter"
+  ]
+ },
+ {
+  "slug": "buff-momocha",
+  "description": "Newari momocha, small steamed dumplings with a pleated top, served with a bowl of tomato sauce",
+  "vessel": "on a steel plate",
+  "covers": [
+   "chicken-momocha"
+  ]
+ },
+ {
+  "slug": "aloo-achar-newari",
+  "description": "Newari aloo achar, boiled potato cubes in a spicy tangy sesame, chilli and coriander dressing",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "aloo-sandheko"
+  ]
+ },
+ {
+  "slug": "tibetan-bread-tingmo",
+  "description": "tingmo, Tibetan steamed flower-shaped bread rolls, soft white spiral buns",
+  "vessel": "in a bamboo steamer",
+  "angle": "45 degree",
+  "covers": [
+   "tingmo-platter"
+  ]
+ },
+ {
+  "slug": "shapta",
+  "description": "Tibetan shapta, spicy stir-fried thin beef strips with onion, capsicum and red chilli",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "shyakpa-mutton",
+  "description": "Tibetan shyakpa, thick stew with hand-cut noodles, mutton pieces, radish and spinach in a rich broth",
+  "vessel": "in a deep ceramic bowl",
+  "angle": "top-down",
+  "covers": [
+   "shyakpa-chicken"
+  ]
+ },
+ {
+  "slug": "butter-tea",
+  "description": "Himalayan butter tea, creamy pale tea with a golden butter sheen",
+  "vessel": "in a small wooden cup with a brass kettle behind",
+  "angle": "eye-level",
+  "surface": "dark wooden"
+ },
+ {
+  "slug": "buff-sekuwa",
+  "description": "Nepali buff sekuwa, charcoal-grilled marinated buffalo meat pieces with red onion and lemon wedges",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "surface": "dark wooden",
+  "covers": [
+   "pork-sekuwa",
+   "mutton-sekuwa",
+   "bhutan-sekuwa"
+  ]
+ },
+ {
+  "slug": "fish-sekuwa",
+  "description": "Nepali fish sekuwa, charcoal-grilled whole small fish with spices, onion rings and lemon",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "surface": "dark wooden"
+ },
+ {
+  "slug": "mixed-sekuwa-platter",
+  "description": "mixed sekuwa platter, assorted grilled chicken, buffalo and pork skewers with onion, tomato, lemon and mint chutney",
+  "vessel": "on a large steel platter",
+  "angle": "45 degree",
+  "surface": "dark wooden",
+  "covers": [
+   "kebab-platter"
+  ]
+ },
+ {
+  "slug": "buff-sukuti",
+  "description": "Nepali sukuti, dry smoked and fried buffalo meat strips with chopped onion, green chilli, tomato and coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "surface": "dark wooden",
+  "covers": [
+   "pork-sukuti",
+   "mutton-sukuti"
+  ]
+ },
+ {
+  "slug": "spicy-chicken-wings",
+  "description": "spicy glazed chicken wings coated in red hot sauce with a sprinkle of sesame and spring onion",
+  "vessel": "on a white plate with a dip bowl",
+  "angle": "45 degree",
+  "covers": [
+   "buffalo-chicken-wings"
+  ]
+ },
+ {
+  "slug": "chicken-lollipop",
+  "description": "chicken lollipop, six fried drumettes with the bone exposed, coated in red-orange sauce, with onion rings and a chilli sauce dip",
+  "vessel": "on a white plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "whole-grilled-chicken",
+  "description": "whole grilled chicken with golden-brown charred skin, cut into quarters with lemon wedges and sliced onion",
+  "vessel": "on a wooden board",
+  "angle": "45 degree",
+  "surface": "dark wooden"
+ },
+ {
+  "slug": "bbq-ribs",
+  "description": "barbecue pork ribs glazed in dark sticky sauce, with a side of coleslaw",
+  "vessel": "on a wooden board",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "sizzling-chicken",
+  "description": "sizzling chicken, chicken strips with sauce and onion on a hot black iron plate with steam rising",
+  "vessel": "on a sizzler plate on a wooden stand",
+  "angle": "45 degree",
+  "covers": [
+   "sizzling-buff"
+  ]
+ },
+ {
+  "slug": "dahi-puri",
+  "description": "dahi puri, crisp puri shells filled with potato and chickpeas, topped with yoghurt, tamarind chutney, sev and coriander",
+  "vessel": "on a steel plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "bhel-puri",
+  "description": "bhel puri, puffed rice with sev, chopped onion, tomato, chutneys and coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "aloo-chaat",
+  "description": "aloo chaat, crisp fried potato cubes with chaat masala, onion, tamarind chutney and coriander",
+  "vessel": "in a small steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "samosa-chaat",
+  "description": "samosa chaat, broken samosa topped with chickpea curry, yoghurt, chutneys, onion and sev",
+  "vessel": "on a white plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "pav-bhaji",
+  "description": "pav bhaji, bright orange mashed vegetable bhaji with a melting butter cube and chopped onion, with two buttered pav buns and a lemon wedge",
+  "vessel": "on a steel plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "vada-pav",
+  "description": "vada pav, a spiced potato fritter in a soft bun with green and red chutney, with a fried green chilli",
+  "vessel": "on a paper-lined steel plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "onion-pakoda",
+  "description": "onion pakoda, golden crisp fried onion fritters with green chutney",
+  "vessel": "on a paper-lined plate",
+  "angle": "45 degree",
+  "covers": [
+   "mixed-pakoda"
+  ]
+ },
+ {
+  "slug": "chicken-samosa",
+  "description": "two golden fried samosas with a meat filling, one broken to show spiced minced chicken, with tomato sauce",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "keema-samosa"
+  ]
+ },
+ {
+  "slug": "kachauri",
+  "description": "kachauri, round golden puffed fried pastry with a spiced lentil filling, with potato curry",
+  "vessel": "on a steel plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "jalebi",
+  "description": "jalebi, bright orange crisp spiral sweets glistening with sugar syrup",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "jerry-jalebi"
+  ]
+ },
+ {
+  "slug": "puri-tarkari",
+  "description": "puri tarkari, three puffed golden fried puri with a bowl of potato curry",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "aloo-puri",
+   "chana-puri"
+  ]
+ },
+ {
+  "slug": "sadheko-peanuts",
+  "description": "Nepali sadheko peanuts, roasted peanuts mixed with chopped onion, green chilli, tomato, coriander, lemon and spices",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "masala-peanuts"
+  ]
+ },
+ {
+  "slug": "fried-corn-makai",
+  "description": "Nepali fried corn (bhutuwa makai), crunchy toasted corn kernels with spices, green chilli and coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "chicken-nuggets",
+  "description": "golden breaded chicken nuggets with a ketchup dip",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "chicken-popcorn"
+  ]
+ },
+ {
+  "slug": "veg-spring-roll",
+  "description": "crispy golden vegetable spring rolls, one cut in half to show cabbage and carrot filling, with sweet chilli sauce",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "chicken-spring-roll"
+  ]
+ },
+ {
+  "slug": "paneer-roll",
+  "description": "a paneer roll, a flatbread wrap with grilled paneer, onion, capsicum and green chutney, cut in half, wrapped at one end in paper",
+  "vessel": "on a wooden board",
+  "angle": "45 degree",
+  "covers": [
+   "egg-roll",
+   "chicken-roll",
+   "buff-roll"
+  ]
+ },
+ {
+  "slug": "veg-manchurian-dry",
+  "description": "veg manchurian dry, fried vegetable balls tossed in a glossy dark sauce with spring onion",
+  "vessel": "in a white bowl",
+  "angle": "45 degree",
+  "covers": [
+   "veg-manchurian-gravy"
+  ]
+ },
+ {
+  "slug": "french-fries",
+  "description": "a portion of golden crispy french fries with a bowl of ketchup",
+  "vessel": "in a paper cone on a plate",
+  "angle": "45 degree",
+  "covers": [
+   "potato-wedges"
+  ]
+ },
+ {
+  "slug": "garlic-bread",
+  "description": "garlic bread, sliced baguette toasted golden with garlic butter and parsley",
+  "vessel": "on a wooden board",
+  "angle": "45 degree",
+  "covers": [
+   "cheese-garlic-bread"
+  ]
+ },
+ {
+  "slug": "veg-burger",
+  "description": "a vegetable burger with a sesame bun, crisp veg patty, lettuce, tomato and onion, with a few fries on the side",
+  "vessel": "on a wooden board",
+  "angle": "eye-level",
+  "covers": [
+   "paneer-burger"
+  ]
+ },
+ {
+  "slug": "cheese-burger",
+  "description": "a cheeseburger with a sesame bun, grilled patty, melted cheese slice, lettuce and tomato, with fries on the side",
+  "vessel": "on a wooden board",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "veg-sandwich",
+  "description": "a grilled vegetable sandwich with toasted bread, cucumber, tomato, lettuce and cheese, cut diagonally in half",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "grilled-veg-sandwich",
+   "cheese-sandwich"
+  ]
+ },
+ {
+  "slug": "chicken-sandwich",
+  "description": "a chicken sandwich with toasted bread, shredded chicken, lettuce, tomato and mayo, cut diagonally in half",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "grilled-chicken-sandwich",
+   "club-sandwich",
+   "egg-sandwich"
+  ]
+ },
+ {
+  "slug": "chicken-wrap",
+  "description": "a chicken wrap, tortilla filled with grilled chicken, lettuce, onion and sauce, cut in half and wrapped at the base in paper",
+  "vessel": "on a wooden board",
+  "angle": "45 degree",
+  "covers": [
+   "veg-wrap",
+   "paneer-wrap"
+  ]
+ },
+ {
+  "slug": "shawarma-chicken",
+  "description": "chicken shawarma, a rolled flatbread with shaved chicken, garlic sauce, pickles and vegetables, wrapped at the base in paper",
+  "vessel": "on a wooden board",
+  "angle": "45 degree",
+  "covers": [
+   "shawarma-veg"
+  ]
+ },
+ {
+  "slug": "veg-pizza",
+  "description": "a vegetable pizza with mozzarella, capsicum, onion, tomato, mushroom and olives",
+  "vessel": "on a round metal pizza tray",
+  "angle": "top-down",
+  "covers": [
+   "farmhouse-pizza",
+   "mushroom-pizza",
+   "paneer-pizza"
+  ]
+ },
+ {
+  "slug": "chicken-pizza",
+  "description": "a chicken pizza with mozzarella, chicken chunks, onion, capsicum and a tomato base",
+  "vessel": "on a round metal pizza tray",
+  "angle": "top-down",
+  "covers": [
+   "mixed-pizza",
+   "buff-pizza",
+   "chicken-tikka-pizza",
+   "bbq-chicken-pizza"
+  ]
+ },
+ {
+  "slug": "pasta-alfredo",
+  "description": "penne pasta in a creamy white alfredo sauce with parsley and parmesan",
+  "vessel": "in a white pasta bowl",
+  "angle": "45 degree",
+  "covers": [
+   "chicken-alfredo-pasta"
+  ]
+ },
+ {
+  "slug": "chicken-steak",
+  "description": "a grilled chicken steak with brown pepper sauce, mashed potato and sauteed vegetables",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "buff-steak",
+   "mutton-steak",
+   "pork-steak",
+   "grilled-chicken-breast"
+  ]
+ },
+ {
+  "slug": "steamed-rice",
+  "description": "a mound of fluffy white steamed rice with steam rising",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "jeera-rice",
+  "description": "jeera rice, fragrant basmati rice with whole cumin seeds and a sprig of coriander",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "veg-pulao",
+  "description": "vegetable pulao, basmati rice with peas, carrot, beans and whole spices, garnished with fried onion",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "peas-pulao",
+   "kashmiri-pulao"
+  ]
+ },
+ {
+  "slug": "chicken-pulao",
+  "description": "chicken pulao, golden spiced rice with chicken pieces, whole spices and fried onion",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "mutton-pulao"
+  ]
+ },
+ {
+  "slug": "veg-fried-rice",
+  "description": "Nepali veg fried rice, wok-fried rice with carrot, peas, cabbage, beans and spring onion",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "paneer-fried-rice"
+  ]
+ },
+ {
+  "slug": "egg-fried-rice",
+  "description": "egg fried rice, wok-fried rice with scrambled egg pieces and spring onion",
+  "vessel": "on a white plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "chicken-fried-rice",
+  "description": "chicken fried rice, wok-fried rice with chicken pieces, egg, carrot and spring onion",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "buff-fried-rice",
+   "mutton-fried-rice",
+   "pork-fried-rice",
+   "mixed-fried-rice"
+  ]
+ },
+ {
+  "slug": "schezwan-fried-rice",
+  "description": "schezwan fried rice, reddish-brown spicy wok-fried rice with chilli sauce, capsicum and spring onion",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "schezwan-chicken-fried-rice",
+   "chilli-garlic-fried-rice"
+  ]
+ },
+ {
+  "slug": "veg-biryani",
+  "description": "vegetable biryani, saffron-tinted basmati rice with carrot, peas, beans, fried onion and mint, with a small bowl of raita",
+  "vessel": "in a steel handi bowl",
+  "angle": "45 degree",
+  "covers": [
+   "paneer-biryani"
+  ]
+ },
+ {
+  "slug": "mutton-biryani",
+  "description": "mutton biryani, saffron-tinted basmati rice layered with goat meat pieces, fried onion and mint, with a small bowl of raita",
+  "vessel": "in a steel handi bowl",
+  "angle": "45 degree",
+  "covers": [
+   "buff-biryani",
+   "dum-biryani"
+  ]
+ },
+ {
+  "slug": "khichdi",
+  "description": "khichdi, soft yellow rice and lentil porridge topped with ghee, with a side of papad and pickle",
+  "vessel": "in a steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "masala-khichdi"
+  ]
+ },
+ {
+  "slug": "chicken-tikka",
+  "description": "chicken tikka, red-orange tandoori chicken pieces with charred edges, on a bed of sliced onion with mint chutney and lemon wedge",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "surface": "dark wooden",
+  "covers": [
+   "chicken-malai-tikka"
+  ]
+ },
+ {
+  "slug": "chicken-tandoori-full",
+  "description": "tandoori chicken, a half chicken marinated in red tandoori masala with charred spots, with onion rings, mint chutney and lemon",
+  "vessel": "on a steel platter",
+  "angle": "45 degree",
+  "surface": "dark wooden",
+  "covers": [
+   "chicken-tandoori-half",
+   "tandoori-wings"
+  ]
+ },
+ {
+  "slug": "paneer-tikka",
+  "description": "paneer tikka, grilled paneer cubes with capsicum and onion on skewers, with mint chutney",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "surface": "dark wooden",
+  "covers": [
+   "hariyali-paneer-tikka"
+  ]
+ },
+ {
+  "slug": "butter-chicken",
+  "description": "butter chicken, tender chicken pieces in a creamy orange tomato-butter gravy with a swirl of cream",
+  "vessel": "in a copper karahi bowl, with butter naan beside",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "palak-paneer",
+  "description": "palak paneer, paneer cubes in a smooth bright green spinach gravy with a swirl of cream",
+  "vessel": "in a copper bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "shahi-paneer",
+  "description": "shahi paneer, paneer cubes in a rich creamy pale orange gravy garnished with cream and almonds",
+  "vessel": "in a copper bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "kadhai-paneer",
+  "description": "kadhai paneer, paneer cubes with capsicum and onion in a thick red masala gravy with coriander",
+  "vessel": "in a black iron kadhai",
+  "angle": "45 degree",
+  "covers": [
+   "paneer-tikka-masala"
+  ]
+ },
+ {
+  "slug": "dal-makhani",
+  "description": "dal makhani, creamy dark black lentil and kidney bean curry with a swirl of cream and butter",
+  "vessel": "in a copper bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "plain-naan",
+  "description": "fresh tandoor-baked naan bread with slight char bubbles, brushed with butter",
+  "vessel": "on a wooden board",
+  "angle": "45 degree",
+  "covers": [
+   "butter-naan",
+   "garlic-naan",
+   "cheese-naan"
+  ]
+ },
+ {
+  "slug": "tandoori-roti",
+  "description": "tandoori roti, whole wheat flatbreads with charred spots, stacked",
+  "vessel": "on a wooden board",
+  "angle": "45 degree",
+  "covers": [
+   "butter-roti",
+   "plain-roti",
+   "chapati"
+  ]
+ },
+ {
+  "slug": "aloo-paratha",
+  "description": "aloo paratha, golden stuffed flatbread cooked with ghee, with a dollop of butter, a bowl of curd and pickle",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "paneer-paratha",
+   "aloo-paratha-with-curd",
+   "paneer-paratha-with-curd"
+  ]
+ },
+ {
+  "slug": "chole-bhature",
+  "description": "chole bhature, two puffed fried bhatura breads with chickpea curry, onion and green chilli",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "bhatura"
+  ]
+ },
+ {
+  "slug": "chilli-chicken-dry",
+  "description": "chilli chicken dry, crispy chicken pieces tossed with green chilli, capsicum, onion and spring onion in a glossy dark sauce",
+  "vessel": "in a white bowl",
+  "angle": "45 degree",
+  "covers": [
+   "chilli-buff",
+   "chilli-pork",
+   "chilli-fish"
+  ]
+ },
+ {
+  "slug": "chilli-chicken-gravy",
+  "description": "chilli chicken gravy, chicken pieces with capsicum and onion in a glossy dark-red sauce with spring onion",
+  "vessel": "in a white bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "chicken-manchurian-gravy",
+  "description": "chicken manchurian gravy, fried chicken balls in a dark brown glossy sauce with spring onion",
+  "vessel": "in a white bowl",
+  "angle": "45 degree",
+  "covers": [
+   "chicken-manchurian-dry",
+   "chicken-manchurian"
+  ]
+ },
+ {
+  "slug": "sweet-and-sour-chicken",
+  "description": "sweet and sour chicken, crispy chicken pieces with pineapple, capsicum and onion in a glossy orange-red sauce",
+  "vessel": "in a white bowl",
+  "angle": "45 degree",
+  "covers": [
+   "sweet-and-sour-veg"
+  ]
+ },
+ {
+  "slug": "chicken-in-garlic-sauce",
+  "description": "chicken in garlic sauce, chicken pieces with sliced garlic and spring onion in a glossy light-brown sauce",
+  "vessel": "in a white bowl",
+  "angle": "45 degree",
+  "covers": [
+   "chicken-in-hot-garlic-sauce"
+  ]
+ },
+ {
+  "slug": "poha",
+  "description": "poha, yellow turmeric flattened rice with peanuts, curry leaves, onion and coriander with a lemon wedge",
+  "vessel": "on a white plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "idli-sambar",
+  "description": "idli sambar, three white steamed rice cakes with a bowl of sambar and a bowl of coconut chutney",
+  "vessel": "on a steel plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "masala-dosa",
+  "description": "masala dosa, a long golden-brown crisp rolled crepe with potato filling, with sambar and coconut chutney",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "plain-dosa"
+  ]
+ },
+ {
+  "slug": "egg-omelette",
+  "description": "a folded golden omelette with chopped onion and green chilli, with two toast slices",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "masala-omelette",
+   "bread-omelette"
+  ]
+ },
+ {
+  "slug": "french-toast",
+  "description": "french toast, golden egg-battered bread slices dusted with powdered sugar and a drizzle of honey",
+  "vessel": "on a white plate",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "puri-bhaji",
+  "description": "puri bhaji, puffed golden puri with a bowl of yellow potato bhaji and green chilli",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "poori-bhaji"
+  ]
+ },
+ {
+  "slug": "fried-egg",
+  "description": "two sunny-side-up fried eggs with crisp edges and a sprinkle of black pepper, with toast",
+  "vessel": "on a white plate",
+  "angle": "top-down"
+ },
+ {
+  "slug": "green-salad",
+  "description": "a fresh green salad with sliced cucumber, tomato, onion, carrot and lettuce with a lemon wedge",
+  "vessel": "on a white plate",
+  "angle": "top-down",
+  "covers": [
+   "cucumber-salad",
+   "onion-salad",
+   "kachumber-salad"
+  ]
+ },
+ {
+  "slug": "papad-roasted",
+  "description": "crisp roasted papad, thin round lentil crackers, stacked and fanned out",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "masala-papad",
+   "fried-papad"
+  ]
+ },
+ {
+  "slug": "raita",
+  "description": "raita, creamy white yoghurt with grated cucumber, a pinch of cumin and coriander",
+  "vessel": "in a small white bowl",
+  "angle": "45 degree",
+  "covers": [
+   "boondi-raita",
+   "mixed-veg-raita",
+   "curd-dahi",
+   "plain-curd-bowl"
+  ]
+ },
+ {
+  "slug": "mixed-pickle",
+  "description": "a Nepali mixed pickle (achar) with carrot, radish and green chilli in a glistening red-orange mustard oil spice mix",
+  "vessel": "in a small steel bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "tomato-achar",
+  "description": "Nepali tomato achar, thick red roasted tomato chutney with chilli, garlic, timur and coriander",
+  "vessel": "in a small steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "timur-ko-achar",
+   "dalle-khursani-achar"
+  ]
+ },
+ {
+  "slug": "lalmohan",
+  "description": "lalmohan, round dark golden-brown milk-solid sweets soaked in sugar syrup, garnished with pistachio",
+  "vessel": "in a small white bowl",
+  "angle": "45 degree",
+  "covers": [
+   "rasbari"
+  ]
+ },
+ {
+  "slug": "rasgulla",
+  "description": "rasgulla, soft white spongy cheese balls in light sugar syrup",
+  "vessel": "in a small white bowl",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "barfi",
+  "description": "barfi, diamond-shaped milk fudge squares topped with pistachio slivers",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "kaju-barfi",
+   "khuwa-barfi"
+  ]
+ },
+ {
+  "slug": "laddu",
+  "description": "laddu, round golden-orange sweet balls garnished with pistachio",
+  "vessel": "on a steel plate",
+  "angle": "45 degree",
+  "covers": [
+   "motichoor-laddu",
+   "kalo-til-ko-laddu"
+  ]
+ },
+ {
+  "slug": "kheer",
+  "description": "Nepali kheer, creamy white rice pudding with cardamom, raisins and sliced almonds",
+  "vessel": "in a small ceramic bowl",
+  "angle": "45 degree",
+  "covers": [
+   "rice-kheer"
+  ]
+ },
+ {
+  "slug": "mishti-doi",
+  "description": "mishti doi, set sweet caramel-brown yoghurt in a small clay pot",
+  "vessel": "in a clay pot",
+  "angle": "45 degree",
+  "covers": [
+   "juju-dhau"
+  ]
+ },
+ {
+  "slug": "gajar-ka-halwa",
+  "description": "gajar ka halwa, orange carrot pudding garnished with chopped almonds and pistachio",
+  "vessel": "in a small steel bowl",
+  "angle": "45 degree",
+  "covers": [
+   "suji-halwa"
+  ]
+ },
+ {
+  "slug": "vanilla-ice-cream",
+  "description": "two scoops of vanilla ice cream with a wafer biscuit",
+  "vessel": "in a glass cup",
+  "angle": "eye-level",
+  "covers": [
+   "chocolate-ice-cream"
+  ]
+ },
+ {
+  "slug": "chocolate-cake",
+  "description": "a slice of moist layered chocolate cake with ganache and cocoa dusting",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "black-forest-cake"
+  ]
+ },
+ {
+  "slug": "brownie",
+  "description": "a warm square chocolate brownie, fudgy and dense, dusted with cocoa and a scoop of vanilla ice cream",
+  "vessel": "on a white plate",
+  "angle": "45 degree",
+  "covers": [
+   "brownie-with-ice-cream",
+   "chocolate-lava-cake"
+  ]
+ },
+ {
+  "slug": "black-tea",
+  "description": "black tea, clear deep amber tea in a glass cup with steam, a lemon slice on the saucer",
+  "vessel": "in a glass cup on a saucer",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "masala-tea",
+  "description": "Nepali masala tea, creamy tea with spices, with cinnamon stick, cardamom pods and ginger slices beside it",
+  "vessel": "in a small glass cup on a saucer",
+  "angle": "eye-level",
+  "covers": [
+   "ginger-tea"
+  ]
+ },
+ {
+  "slug": "lemon-tea",
+  "description": "lemon tea, golden tea with a lemon slice and a spoon of honey",
+  "vessel": "in a glass cup on a saucer",
+  "angle": "eye-level",
+  "covers": [
+   "honey-lemon-ginger-tea"
+  ]
+ },
+ {
+  "slug": "green-tea",
+  "description": "green tea, pale green-gold tea with a few loose leaves visible",
+  "vessel": "in a clear glass cup on a saucer",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "cappuccino",
+  "description": "cappuccino with heart-shaped latte art and thick milk foam",
+  "vessel": "in a white cup on a saucer",
+  "angle": "45 degree",
+  "covers": [
+   "latte",
+   "mocha"
+  ]
+ },
+ {
+  "slug": "hot-chocolate",
+  "description": "hot chocolate topped with whipped cream and cocoa powder",
+  "vessel": "in a white mug",
+  "angle": "45 degree"
+ },
+ {
+  "slug": "cold-coffee",
+  "description": "cold coffee, creamy iced coffee with chocolate drizzle and whipped cream",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level",
+  "covers": [
+   "iced-latte"
+  ]
+ },
+ {
+  "slug": "fresh-lime-soda",
+  "description": "fresh lime soda, clear fizzy drink with lime slices, mint leaves and ice",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level",
+  "covers": [
+   "fresh-lime-water",
+   "lemonade"
+  ]
+ },
+ {
+  "slug": "sweet-lassi",
+  "description": "sweet lassi, thick creamy white yoghurt drink with a sprinkle of cardamom and chopped pistachio",
+  "vessel": "in a tall glass or small steel glass",
+  "angle": "eye-level",
+  "covers": [
+   "salted-lassi"
+  ]
+ },
+ {
+  "slug": "chhaas-buttermilk",
+  "description": "buttermilk (mohi), thin pale white drink with a pinch of cumin powder and coriander",
+  "vessel": "in a steel glass",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "fresh-orange-juice",
+  "description": "fresh orange juice with pulp and an orange slice on the rim",
+  "vessel": "in a tall glass",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "fresh-watermelon-juice",
+  "description": "fresh watermelon juice, bright pink-red with a small watermelon wedge and mint",
+  "vessel": "in a tall glass",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "sugarcane-juice",
+  "description": "fresh sugarcane juice, pale green-yellow, with ice, a lemon slice and a piece of sugarcane stalk",
+  "vessel": "in a tall glass",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "banana-shake",
+  "description": "banana milkshake, creamy pale beige with a banana slice on the rim",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level",
+  "covers": [
+   "mango-shake"
+  ]
+ },
+ {
+  "slug": "chocolate-shake",
+  "description": "chocolate milkshake topped with whipped cream and chocolate sauce",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level",
+  "covers": [
+   "oreo-shake"
+  ]
+ },
+ {
+  "slug": "strawberry-shake",
+  "description": "pink strawberry milkshake with whipped cream and a fresh strawberry on the rim",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "avocado-shake",
+  "description": "avocado milkshake, creamy pale green in colour, with a thin avocado slice on the rim",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "virgin-mojito",
+  "description": "virgin mojito, clear lime soda with muddled mint leaves, lime wedges and crushed ice",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "coca-cola",
+  "description": "a generic cola soft drink, dark brown with fizz and ice cubes, with no brand label or logo",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level",
+  "covers": [
+   "pepsi"
+  ]
+ },
+ {
+  "slug": "sprite",
+  "description": "a generic clear lemon-lime fizzy drink with ice and a lime slice, no brand label or logo",
+  "vessel": "in a tall glass with a straw",
+  "angle": "eye-level",
+  "covers": [
+   "fanta"
+  ]
+ },
+ {
+  "slug": "mineral-water-500ml",
+  "description": "a plain unbranded clear plastic water bottle with blank label next to a glass of water",
+  "vessel": "on a tabletop",
+  "angle": "eye-level"
+ },
+ {
+  "slug": "gorkha-beer",
+  "description": "a generic glass of golden lager beer with a white foam head, beside an unlabeled brown bottle, no brand or logo",
+  "vessel": "in a tall pint glass",
+  "angle": "eye-level",
+  "covers": [
+   "tuborg-beer",
+   "carlsberg-beer",
+   "everest-beer",
+   "nepal-ice-beer",
+   "barahsinghe-beer",
+   "khukuri-beer",
+   "draught-beer"
+  ]
+ },
+ {
+  "slug": "old-durbar-whisky",
+  "description": "a generic amber whisky served neat in a short tumbler with ice, beside an unlabeled bottle, no brand or logo",
+  "vessel": "in a rocks glass",
+  "angle": "eye-level",
+  "surface": "dark wooden",
+  "covers": [
+   "signature-whisky",
+   "black-label-whisky",
+   "red-label-whisky"
+  ]
+ },
+ {
+  "slug": "local-raksi",
+  "description": "Nepali raksi, clear homemade spirit poured from a small brass pot into a small clay cup",
+  "vessel": "on a wooden tray",
+  "angle": "45 degree",
+  "surface": "dark wooden",
+  "covers": [
+   "aila"
+  ]
+ },
+ {
+  "slug": "tongba",
+  "description": "Nepali tongba, fermented millet in a tall wooden mug with hot water and a bamboo straw, with a small side of roasted snack",
+  "vessel": "in a wooden tongba mug with a bamboo straw",
+  "angle": "eye-level",
+  "surface": "dark wooden"
+ },
+ {
+  "slug": "red-wine",
+  "description": "a glass of red wine, deep ruby colour, with a bunch of grapes beside an unlabeled bottle, no brand",
+  "vessel": "in a stemmed wine glass",
+  "angle": "eye-level",
+  "covers": [
+   "white-wine"
+  ]
+ },
+ {
+  "slug": "mojito",
+  "description": "a mojito cocktail with muddled mint, lime wedges and crushed ice",
+  "vessel": "in a highball glass with a straw",
+  "angle": "eye-level"
+ }
+]

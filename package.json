@@ -13,7 +13,9 @@
     "check:editor-browser": "node scripts/check-public-menu.mjs --browser",
     "check:services": "node scripts/check-services.mjs",
     "generate:menu-template": "node scripts/generate-menu-template.mjs",
-    "generate:brand-assets": "node scripts/generate-brand-assets.mjs"
+    "generate:brand-assets": "node scripts/generate-brand-assets.mjs",
+    "images:prompts": "node scripts/generate-image-prompts.mjs",
+    "images:ingest": "node scripts/ingest-dish-images.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

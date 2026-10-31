@@ -2,7 +2,7 @@
 
 Prepared 16 October 2026 from **QR Menu SaaS for Nepali Restaurants — Revised Build Plan**, dated 15 October 2026 (11 pages), adapted to the stack requested in chat.
 
-Progress: Phase 0 is complete. The Phase 1 foundation migration is applied to Supabase; the owner reports deployed login and restaurant creation working. Phase 2 public menus are connected to Supabase, and Phase 3 owner editing, images, preview, and publishing are implemented. Both database migrations are applied. See [Phase 1 status](PHASE-1-STATUS.md), [Phase 2 status](PHASE-2-STATUS.md), and [Phase 3 status](PHASE-3-STATUS.md) for verification and remaining gates.
+Progress: Phase 0 is complete. The Phase 1 foundation migration is applied to Supabase; the owner reports deployed login and restaurant creation working. Phase 2 public menus are connected to Supabase, and Phase 3 owner editing, images, preview, and publishing are implemented. Both database migrations are applied. See [Phase 1 status](PHASE-1-STATUS.md), [Phase 2 status](PHASE-2-STATUS.md), and [Phase 3 status](PHASE-3-STATUS.md) for verification and remaining gates. [Phase 4 plan](PHASE-4-PLAN.md) covers VAT pricing, the dish catalog, shared images and RestroFuel Connect.
 
 ## Decisions and scope
 
