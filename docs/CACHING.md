@@ -26,6 +26,10 @@ Publish/unpublish, admin suspension/restore, soft deletion, branding, item/varia
 
 Already open customer menus will not magically change when a server cache tag expires. Initially they refresh on navigation/reload; if the requirement includes live open screens, add narrowly scoped public SWR refresh (e.g. 30–60 seconds) or a realtime version signal. Treat this as a product/performance choice; keep SWR off the public page until needed to preserve its JavaScript budget. Suspension affects subsequent requests; previously delivered browser content cannot be recalled.
 
+## Dish catalog
+
+`getDishCatalog()` in `src/lib/dishes/repository.ts` is a `use cache` function (cookie-free client, built-in `days` profile, tag `dishes`) returning only ACTIVE dishes. It is served to signed-in owners by `GET /api/dashboard/dishes` with `private, no-store`; the browser keeps it in SWR for an hour without focus revalidation. Admin dish saves, merges and candidate resolutions call `updateTag("dishes")` after commit. Owners see changes within an hour at most; item saves never touch the catalog or the public menu cache because `dish_id` is not part of the public projection.
+
 ## QR and slug routing
 
 `/q/<shortCode>` responds with 302 plus `Cache-Control: no-store`; lookup freshness matters because the slug can change. Do not permanently cache that redirect. Never print a localhost or Vercel preview origin in customer QR codes. Historical URLs use explicit 301 after resolving their immutable association, with carefully chosen cache policy. Do not recycle old slugs.

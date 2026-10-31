@@ -46,6 +46,66 @@ async function checkVatModeBrowser({ page, save }) {
   console.log("PASS mobile VAT mode dialog previews both strategies, converts prices, shows guest prices in the editor and fits 390px");
 }
 
+async function checkDishSuggestionsBrowser({ page, save }) {
+  const fits = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+  const itemOf = (category, name) => category.locator("li").filter({ has: page.getByRole("heading", { name, exact: true }) });
+  await page.getByRole("navigation", { name: "Restaurant workspace" }).getByRole("button", { name: "Menu", exact: true }).click();
+  const category = page.locator("section").filter({ has: page.getByRole("heading", { name: "Browser specials", exact: true }) });
+  await category.getByRole("button", { name: "+ Add item", exact: true }).click();
+  const name = page.getByRole("combobox", { name: "Item name", exact: true });
+  await name.fill("chiken momo");
+  const options = page.getByRole("listbox", { name: "Matching dishes" }).getByRole("option");
+  await options.first().waitFor();
+  assert((await options.first().innerText()).includes("Chicken Momo"), "a misspelt name must still suggest the catalog dish");
+  assert((await options.first().boundingBox()).height >= 44, "suggestion rows must be touch sized");
+  assert(await fits(), "suggestions must fit a phone viewport");
+  await mkdir("artifacts", { recursive: true });
+  await page.screenshot({ path: "artifacts/dish-suggestions-mobile.png" });
+  await name.press("ArrowDown");
+  await name.press("Enter");
+  assert.equal(await name.inputValue(), "Chicken Momo");
+  assert(await page.getByRole("dialog", { name: "Add an item" }).isVisible(), "Enter must pick the suggestion, not submit the form");
+  await page.getByText("Matches the catalog dish “Chicken Momo”.").waitFor();
+  assert.equal(await page.getByLabel("Nepali name (optional)", { exact: true }).inputValue(), "चिकेन म:म:");
+  await page.getByLabel("Price (Rs)", { exact: true }).fill("250");
+  const linked = await save(page.getByRole("button", { name: "Save item", exact: true }));
+  const chicken = linked.categories.flatMap(value => value.items).find(item => item.name === "Chicken Momo");
+  assert(chicken?.dish_id, "the chosen suggestion must be saved as a catalog link");
+
+  await itemOf(category, "Chicken Momo").getByRole("button", { name: "More actions for Chicken Momo", exact: true }).click();
+  await itemOf(category, "Chicken Momo").getByRole("button", { name: "Edit item", exact: true }).click();
+  await page.getByText("Matches the catalog dish “Chicken Momo”.").waitFor();
+  await page.getByRole("combobox", { name: "Item name", exact: true }).fill("Chicken Momo Special");
+  assert.equal(await page.getByText("Matches the catalog dish").count(), 0, "renaming away from the dish must drop the link");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+
+  await category.getByRole("button", { name: "+ Add item", exact: true }).click();
+  await page.getByRole("combobox", { name: "Item name", exact: true }).fill("Buff Mommo");
+  await page.getByLabel("Price (Rs)", { exact: true }).fill("240");
+  await page.getByRole("button", { name: "Save item", exact: true }).click();
+  const prompt = page.getByRole("alert").filter({ hasText: "Did you mean" });
+  await prompt.waitFor();
+  assert((await prompt.innerText()).includes("Buff Momo"));
+  await prompt.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: "artifacts/dish-did-you-mean-mobile.png" });
+  const accepted = await save(prompt.getByRole("button", { name: "Use suggestion", exact: true }));
+  assert(accepted.categories.flatMap(value => value.items).some(item => item.name === "Buff Momo" && item.dish_id), "accepting the suggestion must save the catalog name and link");
+
+  await category.getByRole("button", { name: "+ Add item", exact: true }).click();
+  await page.getByRole("combobox", { name: "Item name", exact: true }).fill("Buff Mommoo Supreme");
+  await page.getByLabel("Price (Rs)", { exact: true }).fill("260");
+  await page.getByRole("button", { name: "Save item", exact: true }).click();
+  const second = page.getByRole("alert").filter({ hasText: "Did you mean" });
+  if (await second.count()) {
+    const kept = await save(second.getByRole("button", { name: "Keep my name", exact: true }));
+    assert(kept.categories.flatMap(value => value.items).some(item => item.name === "Buff Mommoo Supreme" && !item.dish_id), "keeping the owner's name must not link a dish");
+  } else {
+    await page.getByRole("dialog", { name: "Add an item" }).waitFor({ state: "detached" });
+  }
+  console.log("PASS mobile item name suggestions: fuzzy match, keyboard pick, catalog link kept/dropped, did-you-mean accept/keep, fits 390px");
+}
+
 export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }) {
   const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? (process.platform === "win32" ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : undefined) });
   try {
@@ -167,6 +227,7 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     await save(page.getByRole("button", { name: "Save settings", exact: true }));
     await page.getByRole("heading", { name: "Browser Kitchen", exact: true }).waitFor();
     await checkVatModeBrowser({ page, save });
+    await checkDishSuggestionsBrowser({ page, save });
     const old = await fetch(`${base}/renamed-kitchen`, { redirect: "manual" });
     assert.equal(old.status, 301);
     assert.equal(new URL(old.headers.get("location"), base).pathname, "/browser-kitchen");

@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import type { EditorCategory, EditorItem } from "@/lib/editor/data";
 import { itemInput, parsePrice, priceInputValue, type ItemInput } from "@/lib/editor/schemas";
@@ -9,13 +10,17 @@ import { ItemDetailFields } from "./item-detail-fields";
 import { GuestPriceHint } from "./guest-price-hint";
 import type { VatRule } from "@/lib/menu/vat";
 import { categoryLabel, orderedCategories } from "@/lib/editor/categories";
+import { useDishIndex } from "@/hooks/use-dish-index";
+import { nearMissDish } from "@/lib/dishes/search";
+import type { CatalogDish } from "@/lib/dishes/schemas";
+import { DishNameField } from "./dish-name-field";
 
-export function ItemForm({ item, categoryId, categories, vat, pending, error, onSave, onCancel }: {
-  item?: EditorItem; categoryId: string; categories: EditorCategory[]; vat: VatRule; pending: boolean; error?: string;
+export function ItemForm({ userId, item, categoryId, categories, vat, pending, error, onSave, onCancel }: {
+  userId: string; item?: EditorItem; categoryId: string; categories: EditorCategory[]; vat: VatRule; pending: boolean; error?: string;
   onSave: (value: ItemInput) => void; onCancel: () => void;
 }) {
-  const { register, control, handleSubmit, setError, formState: { errors } } = useForm<ItemFields>({ defaultValues: {
-    category_id: item?.category_id ?? categoryId, name: item?.name ?? "", name_ne: item?.name_ne ?? "",
+  const { register, control, handleSubmit, setError, setValue, formState: { errors } } = useForm<ItemFields>({ defaultValues: {
+    category_id: item?.category_id ?? categoryId, dish_id: item?.dish_id ?? "", name: item?.name ?? "", name_ne: item?.name_ne ?? "",
     description: item?.description ?? "", description_ne: item?.description_ne ?? "", price: priceInputValue(item?.price_minor ?? null),
     uses_variants: item?.uses_variants ?? false, is_available: item?.is_available ?? true, is_featured: item?.is_featured ?? false, diet: item?.diet ?? "", spice_level: item?.spice_level?.toString() ?? "",
     confirm_prices: false, variants: item?.variants.map(variant => ({ name: variant.name, name_ne: variant.name_ne ?? "", price: priceInputValue(variant.price_minor), is_available: variant.is_available })) ?? [],
@@ -26,11 +31,13 @@ export function ItemForm({ item, categoryId, categories, vat, pending, error, on
   } });
   const { fields, append, remove, move } = useFieldArray({ control, name: "variants" });
   const usesVariants = useWatch({ control, name: "uses_variants" });
-  function submit(values: ItemFields) {
+  const dishIndex = useDishIndex(userId);
+  const [nearMiss, setNearMiss] = useState<{ dish: CatalogDish; values: ItemFields } | null>(null);
+  function submit(values: ItemFields, confirmed = false) {
     try {
       if (item?.is_example_price && !values.confirm_prices) throw new Error("Confirm the example prices before saving.");
       const parsed = itemInput.safeParse({
-        ...values, id: item?.id, price_minor: values.uses_variants ? null : parsePrice(values.price),
+        ...values, id: item?.id, dish_id: values.dish_id || null, price_minor: values.uses_variants ? null : parsePrice(values.price),
         diet: values.diet || null, spice_level: values.spice_level === "" ? null : Number(values.spice_level),
         variants: values.uses_variants ? values.variants.map(variant => ({ name: variant.name, name_ne: variant.name_ne, price_minor: parsePrice(variant.price), is_available: variant.is_available })) : [],
         details: { is_popular: values.is_popular, is_new: values.is_new,
@@ -41,14 +48,19 @@ export function ItemForm({ item, categoryId, categories, vat, pending, error, on
         },
       });
       if (!parsed.success) throw new Error(parsed.error.issues[0].message);
+      const suggestion = !confirmed && !values.dish_id && dishIndex && values.name.trim() !== item?.name ? nearMissDish(dishIndex, values.name) : null;
+      if (suggestion) { setNearMiss({ dish: suggestion, values }); return; }
+      setNearMiss(null);
       onSave(parsed.data);
     } catch (error) { setError("root", { message: error instanceof Error ? error.message : "Check your menu item." }); }
   }
-  return <form onSubmit={handleSubmit(submit)}>
+  const acceptSuggestion = ({ dish, values }: NonNullable<typeof nearMiss>) =>
+    submit({ ...values, name: dish.name, dish_id: dish.id, name_ne: values.name_ne.trim() ? values.name_ne : dish.nameNe ?? "" }, true);
+  return <form onSubmit={handleSubmit(values => submit(values))}>
     <fieldset disabled={pending} className="space-y-5">
       <p className={eyebrowClass}>Basic details</p>
       <Field label="Category / subcategory"><select {...register("category_id")} className={inputClass}>{orderedCategories(categories).map(category => <option key={category.id} value={category.id}>{categoryLabel(category, categories)}</option>)}</select></Field>
-      <Field label="Item name"><input {...register("name")} className={inputClass} maxLength={150} required data-autofocus /></Field>
+      <DishNameField control={control} setValue={setValue} index={dishIndex} />
       <Field label="Nepali name (optional)"><input {...register("name_ne")} lang="ne" className={inputClass} maxLength={150} /></Field>
       <Field label="Description (optional)"><textarea {...register("description")} className={inputClass} rows={3} maxLength={1000} /></Field>
       <details className="text-sm"><summary className="cursor-pointer py-2">Nepali description</summary><textarea {...register("description_ne")} lang="ne" aria-label="Nepali description" className={inputClass} rows={3} maxLength={1000} /></details>
@@ -78,6 +90,13 @@ export function ItemForm({ item, categoryId, categories, vat, pending, error, on
       <label className="flex items-start gap-3 rounded-xl bg-brand-soft p-4 text-sm"><input {...register("is_featured")} type="checkbox" className="mt-0.5 h-5 w-5" /><span>Feature in specials banner<span className="mt-1 block text-xs leading-5 text-ink-muted">Choose up to six specials. Their names, prices, and item photos appear at the top of your public menu. Hidden categories and sold-out specials stay out of the banner.</span></span></label>
       <ItemDetailFields control={control} register={register} vat={vat} />
       {item?.is_example_price && <label className={`${noticeClass("warning")} flex items-start gap-3`}><input {...register("confirm_prices")} type="checkbox" className="mt-1 h-5 w-5" required />I have checked every example price for this item and its variants.</label>}
+      {nearMiss && <div role="alert" className={`${noticeClass("warning")} space-y-3`}>
+        <p>Did you mean <strong className="break-words">{nearMiss.dish.name}</strong>? Using the catalog name helps guests find it and lets you pick a ready-made photo later.</p>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => acceptSuggestion(nearMiss)} className={primaryClass}>Use suggestion</button>
+          <button type="button" onClick={() => submit(nearMiss.values, true)} className={secondaryClass}>Keep my name</button>
+        </div>
+      </div>}
       <FormError message={errors.root?.message ?? error} />
       <DialogFooter><button disabled={pending} className={primaryClass}>{pending ? "Saving…" : "Save item"}</button><button type="button" onClick={onCancel} className={secondaryClass}>Cancel</button></DialogFooter>
     </fieldset>

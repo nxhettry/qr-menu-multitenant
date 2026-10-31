@@ -10,13 +10,16 @@ export function useAdminAction() {
   const { mutate } = useSWRConfig();
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<AdminActionState>({});
-  const run = useCallback((action: () => Promise<AdminActionState>) => {
+  const run = useCallback((action: () => Promise<AdminActionState>, onSuccess?: () => void) => {
     setResult({});
     startTransition(async () => {
       try {
         const response = await action();
         setResult(response);
-        if (!response.error) await mutate(isAdminKey, undefined, { revalidate: false });
+        if (!response.error) {
+          onSuccess?.();
+          await mutate(isAdminKey, undefined, { revalidate: false });
+        }
       } catch {
         setResult({ error: "We couldn’t confirm that change. Refresh the page to check." });
       }

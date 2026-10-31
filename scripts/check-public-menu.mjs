@@ -48,6 +48,8 @@ try {
   await db.exec(await readFile(new URL("../supabase/migrations/202610170001_bulk_menu.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610280001_slug_availability.sql", import.meta.url), "utf8"));
   await db.exec(await readFile(new URL("../supabase/migrations/202610290002_vat_mode_conversion.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202611010001_dish_catalog.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/202611010002_dish_catalog_seed.sql", import.meta.url), "utf8"));
   const { rows: [restaurant] } = await db.query("insert into public.restaurants(name,slug,status,phone,map_url,vat_percent,prices_include_vat) values('Live Kitchen','live-kitchen','PUBLISHED','+977 9801234567','https://maps.google.com/?q=Kathmandu',13,true) returning id,short_code");
   const { rows: [category] } = await db.query("insert into public.menu_categories(restaurant_id,name) values($1,'Lunch') returning id", [restaurant.id]);
   await db.query("insert into public.menu_items(restaurant_id,category_id,name,description,price_minor,is_available) values($1,$2,'Test thali','A fresh seasonal lunch.',18005,false)", [restaurant.id, category.id]);
@@ -104,18 +106,18 @@ try {
         return;
       }
       if (functionName === "is_super_admin") { response.writeHead(200, { "Content-Type": "application/json" }).end("false"); return; }
-      assert(["get_public_menu", "resolve_menu_code", "resolve_old_slug", "get_editor_menu", "mutate_menu", "slug_available", "change_vat_mode"].includes(functionName));
+      assert(["get_public_menu", "resolve_menu_code", "resolve_old_slug", "get_editor_menu", "mutate_menu", "slug_available", "change_vat_mode", "get_dish_catalog"].includes(functionName));
       let body = "";
       for await (const chunk of request) body += chunk;
-      const args = JSON.parse(body);
+      const args = body ? JSON.parse(body) : {};
       const value = args.p_slug ?? args.p_code;
       const key = `${functionName}:${value}`;
       calls.set(key, (calls.get(key) ?? 0) + 1);
       const data = await db.transaction(async tx => {
         await tx.exec(`set local role ${authenticated ? "authenticated" : "anon"}`);
         await tx.query("select set_config('request.jwt.claim.sub',$1,true)", [authenticated ? ownerId : ""]);
-        const sqlArgs = functionName === "mutate_menu" ? [args.p_restaurant_id, args.p_operation, JSON.stringify(args.p_payload)] : functionName === "change_vat_mode" ? [args.p_restaurant_id, args.p_include_vat, args.p_convert] : functionName === "get_editor_menu" ? [args.p_restaurant_id] : [value];
-        const placeholders = functionName === "mutate_menu" ? "$1,$2,$3::jsonb" : functionName === "change_vat_mode" ? "$1,$2,$3" : "$1";
+        const sqlArgs = functionName === "mutate_menu" ? [args.p_restaurant_id, args.p_operation, JSON.stringify(args.p_payload)] : functionName === "change_vat_mode" ? [args.p_restaurant_id, args.p_include_vat, args.p_convert] : functionName === "get_editor_menu" ? [args.p_restaurant_id] : functionName === "get_dish_catalog" ? [] : [value];
+        const placeholders = functionName === "mutate_menu" ? "$1,$2,$3::jsonb" : functionName === "change_vat_mode" ? "$1,$2,$3" : functionName === "get_dish_catalog" ? "" : "$1";
         return (await tx.query(`select public.${functionName}(${placeholders}) as value`, sqlArgs)).rows[0].value;
       });
       response.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(data));

@@ -1,7 +1,7 @@
 "use server";
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import { refresh } from "next/cache";
+import { refresh, updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { credentialsSchema, type FormState } from "@/lib/auth/schemas";
@@ -12,6 +12,8 @@ import { assertSuperAdmin } from "@/lib/admin/session";
 import { getAdminUser, logAdminUserAction, setRestaurantSuspended, type AdminUserAction } from "@/lib/admin/repository";
 import { newPasswordSchema, type AdminActionState } from "@/lib/admin/schemas";
 import { invalidateMenu } from "@/lib/editor/invalidation";
+import { candidateResolution, dishInput } from "@/lib/dishes/schemas";
+import { DISH_CATALOG_TAG, mergeAdminDishes, resolveDishCandidate, saveAdminDish } from "@/lib/dishes/repository";
 
 const notPermitted: AdminActionState = { error: "Your admin session has ended. Sign in again." };
 const BAN_DURATION = "876000h";
@@ -115,4 +117,44 @@ export async function changeOwnPasswordAction(_state: AdminActionState, form: Fo
   const { error } = await supabase.auth.updateUser({ password: password.data });
   if (error) return { error: authErrorMessage("admin-own-password", error, "Could not update your password. Try a different one.") };
   return { message: "Your password has been updated." };
+}
+
+const dishFailure: AdminActionState = { error: "Could not update the dish catalog. Please try again." };
+
+async function runDishAction(run: () => Promise<string>): Promise<AdminActionState> {
+  try { await assertSuperAdmin(); }
+  catch { return notPermitted; }
+  let message: string;
+  try { message = await run(); }
+  catch (error) {
+    const code = typeof error === "object" && error && "code" in error ? error.code : undefined;
+    console.error("[admin:dish]", code);
+    return dishFailure;
+  }
+  try { updateTag(DISH_CATALOG_TAG); }
+  catch { console.error("Committed dish change needs cache refresh"); }
+  return { message };
+}
+
+export async function saveDishAction(input: unknown): Promise<AdminActionState> {
+  const parsed = dishInput.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  return runDishAction(async () => {
+    const dish = await saveAdminDish(parsed.data);
+    return `Saved ${dish.name}${dish.itemCount ? ` · ${dish.itemCount} menu item${dish.itemCount === 1 ? "" : "s"} linked` : ""}.`;
+  });
+}
+
+export async function mergeDishesAction(sourceId: string, targetId: string): Promise<AdminActionState> {
+  if (!z.uuid().safeParse(sourceId).success || !z.uuid().safeParse(targetId).success) return { error: "Choose two dishes to merge." };
+  return runDishAction(async () => `Merged into ${(await mergeAdminDishes(sourceId, targetId)).name}.`);
+}
+
+export async function resolveDishCandidateAction(normalized: string, resolution: unknown): Promise<AdminActionState> {
+  const parsed = candidateResolution.safeParse(resolution);
+  if (!parsed.success || !normalized || normalized.length > 200) return { error: "Choose what to do with this name." };
+  return runDishAction(async () => {
+    const { linkedItems } = await resolveDishCandidate(normalized, parsed.data);
+    return linkedItems ? `Done · ${linkedItems} menu item${linkedItems === 1 ? "" : "s"} linked.` : "Done.";
+  });
 }

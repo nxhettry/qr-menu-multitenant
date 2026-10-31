@@ -1,7 +1,7 @@
 import type { DisplayField } from "@/lib/menu/details";
 
 export type ItemFields = {
-  category_id: string; name: string; name_ne: string; description: string; description_ne: string;
+  category_id: string; dish_id: string; name: string; name_ne: string; description: string; description_ne: string;
   price: string; uses_variants: boolean; is_available: boolean; is_visible: boolean; is_featured: boolean;
   diet: string; spice_level: string; confirm_prices: boolean;
   variants: { name: string; name_ne: string; price: string; is_available: boolean }[];

@@ -7,7 +7,7 @@ export const editorVariantSchema = z.object({
   id: z.uuid(), name: z.string(), name_ne: nullableText, price_minor: z.number().int(), is_available: z.boolean(), sort_order: z.number().int(),
 });
 export const editorItemSchema = z.object({
-  id: z.uuid(), category_id: z.uuid(), name: z.string(), name_ne: nullableText, description: nullableText, description_ne: nullableText,
+  id: z.uuid(), category_id: z.uuid(), dish_id: z.uuid().nullable().default(null), name: z.string(), name_ne: nullableText, description: nullableText, description_ne: nullableText,
   price_minor: z.number().int().nullable(), is_available: z.boolean(), is_visible: z.boolean().default(true), details: itemDetailsSchema.default(() => itemDetailsSchema.parse({})), is_featured: z.boolean().default(false), uses_variants: z.boolean(), is_example_price: z.boolean(),
   image_public_id: nullableText, image_version: nullableVersion, diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
   spice_level: z.number().int().nullable(), sort_order: z.number().int(), variants: z.array(editorVariantSchema),

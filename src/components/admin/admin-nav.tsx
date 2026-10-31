@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const links = [["/admin", "Overview"], ["/admin/restaurants", "Restaurants"], ["/admin/users", "Users"], ["/admin/activity", "Activity"], ["/admin/account", "Account"]] as const;
+const links = [["/admin", "Overview"], ["/admin/restaurants", "Restaurants"], ["/admin/users", "Users"], ["/admin/dishes", "Dishes"], ["/admin/activity", "Activity"], ["/admin/account", "Account"]] as const;
 
 function NavLinks({ pathname }: { pathname?: string }) {
   return <nav aria-label="Admin" className="-mx-4 flex gap-1 overflow-x-auto px-4 py-3 sm:mx-0 sm:px-0">

@@ -27,8 +27,8 @@ function findItem(categories: EditorCategory[], id: string) {
   return categories.flatMap(category => category.items).find(item => item.id === id);
 }
 
-export function MenuWorkspace({ restaurantId, categories, vat, canEdit, pending, result, save, clearResult, refresh }: {
-  restaurantId: string; categories: EditorCategory[]; vat: VatRule; canEdit: boolean; pending: boolean; result: MutationResult;
+export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, pending, result, save, clearResult, refresh }: {
+  userId: string; restaurantId: string; categories: EditorCategory[]; vat: VatRule; canEdit: boolean; pending: boolean; result: MutationResult;
   save: (input: EditorMutation, onSuccess?: () => void) => void; clearResult: () => void; refresh: () => Promise<unknown>;
 }) {
   const view = useMenuEditorView(restaurantId, categories);
@@ -77,7 +77,7 @@ export function MenuWorkspace({ restaurantId, categories, vat, canEdit, pending,
         onSave={payload => save({ operation: "saveCategory", payload }, () => { if (!payload.id) revealNextCreated(); close(); })} />
     </Dialog>}
     {dialog?.kind === "item" && <Dialog title={editingItem ? "Edit item" : "Add an item"} description={editingItem?.name} size="lg" onClose={close}>
-      <ItemForm item={editingItem} categoryId={dialog.categoryId} categories={categories} vat={vat} pending={pending} error={result.error} onCancel={close}
+      <ItemForm userId={userId} item={editingItem} categoryId={dialog.categoryId} categories={categories} vat={vat} pending={pending} error={result.error} onCancel={close}
         onSave={payload => save({ operation: "saveItem", payload }, () => { expand(payload.category_id); close(); })} />
     </Dialog>}
     {dialog?.kind === "photo" && editingItem && <Dialog title="Item photo" description={editingItem.name} onClose={close}>

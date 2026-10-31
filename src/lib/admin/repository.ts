@@ -7,7 +7,7 @@ import {
   type EventListQuery, type RestaurantListQuery, type UserListQuery,
 } from "./schemas";
 
-async function callAdmin<T extends z.ZodType>(fn: string, args: Record<string, unknown>, schema: T): Promise<z.infer<T>> {
+export async function callAdmin<T extends z.ZodType>(fn: string, args: Record<string, unknown>, schema: T): Promise<z.infer<T>> {
   const { data, error } = await (await createClient()).rpc(fn, args);
   if (error) {
     if (error.code !== "42501") console.error(`[admin:${fn}]`, error.code);

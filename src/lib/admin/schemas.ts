@@ -60,11 +60,13 @@ const search = z.string().trim().max(100).catch("");
 const page = z.coerce.number().int().min(1).max(10_000).catch(1);
 export const userListQuery = z.object({ q: search, page });
 export const restaurantListQuery = z.object({ q: search, page, status: restaurantStatus.optional().catch(undefined) });
+export const dishListQuery = z.object({ q: search, page, status: z.enum(["ACTIVE", "HIDDEN"]).optional().catch(undefined) });
 export const eventListQuery = z.object({
   restaurantId: z.uuid().optional().catch(undefined),
   beforeAt: z.iso.datetime({ offset: true }).optional().catch(undefined),
   beforeId: z.uuid().optional().catch(undefined),
 });
+export type DishListQuery = z.infer<typeof dishListQuery>;
 export type UserListQuery = z.infer<typeof userListQuery>;
 export type RestaurantListQuery = z.infer<typeof restaurantListQuery>;
 export type EventListQuery = z.infer<typeof eventListQuery>;

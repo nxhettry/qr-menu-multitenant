@@ -2,13 +2,15 @@
 import type { EditorCategory } from "@/lib/editor/data";
 import type { EditorMutation } from "@/lib/editor/schemas";
 import { useMenuImport } from "@/hooks/use-menu-import";
+import { useDishIndex } from "@/hooks/use-dish-index";
 import { formatPrice } from "@/lib/menu/presentation";
 import { FormError, cardClass, eyebrowClass, noticeClass, primaryClass, secondaryClass } from "@/components/ui/form";
 
-export function BulkImport({ categories, pending, disabled, onImport }: {
-  categories: EditorCategory[]; pending: boolean; disabled: boolean; onImport: (input: EditorMutation, onSuccess: () => void) => void;
+export function BulkImport({ userId, categories, pending, disabled, onImport }: {
+  userId: string; categories: EditorCategory[]; pending: boolean; disabled: boolean; onImport: (input: EditorMutation, onSuccess: () => void) => void;
 }) {
-  const { preview, reading, error, read, requestId, confirmed, setConfirmed } = useMenuImport(categories);
+  const dishIndex = useDishIndex(userId);
+  const { preview, items, matches, choices, choose, reading, error, read, requestId, confirmed, setConfirmed } = useMenuImport(categories, dishIndex);
   return <section aria-label="Bulk menu import" className={`${cardClass} space-y-5 p-5 sm:p-7`}>
     <div><p className={eyebrowClass}>From your sheet to your menu</p><h2 className="mt-2 text-2xl font-semibold tracking-tight">Add items in bulk</h2><p className="mt-3 max-w-xl text-sm leading-6 text-ink-muted">Download a template, fill in your dishes, then review them here. Existing items stay untouched.</p></div>
     <ol className="grid gap-3 text-sm sm:grid-cols-3">{["1 · Fill in the template", "2 · Upload & review", "3 · Confirm & import"].map(step => <li key={step} className="rounded-xl border border-line bg-surface px-4 py-3 font-medium text-ink-muted">{step}</li>)}</ol>
@@ -20,9 +22,14 @@ export function BulkImport({ categories, pending, disabled, onImport }: {
     {preview && <div className="space-y-4">
       <div role="status"><h3 className="text-lg font-semibold">Review your import</h3><p className="mt-1 text-sm text-ink-muted">{preview.rowCount} rows → {preview.items.length} {preview.items.length === 1 ? "item" : "items"} · {preview.issues.length ? `${preview.issues.length} issues to fix` : "Ready for your review"}</p></div>
       {!!preview.issues.length && <div role="alert" className={`${noticeClass("danger")} max-h-64 overflow-y-auto`}><p className="font-semibold">Fix these rows in your sheet and upload it again. Nothing has been imported.</p><ul className="mt-3 space-y-2">{preview.issues.map((issue, i) => <li key={i}>Row {issue.row}: {issue.message}</li>)}</ul></div>}
-      <ul className="max-h-96 divide-y divide-line overflow-y-auto rounded-xl border border-line bg-surface px-4">{preview.items.map((entry, index) => <li key={index} className="py-4 text-sm"><p className="text-xs text-ink-muted">{entry.category}{entry.subcategory ? ` / ${entry.subcategory}` : ""}</p><h4 className="mt-1 break-words font-semibold">{entry.item.name}</h4><p className="mt-1 text-ink-muted">{entry.item.variants.length ? entry.item.variants.map(variant => `${variant.name} ${formatPrice(variant.price_minor)}`).join(" · ") : formatPrice(entry.item.price_minor!)} · {entry.item.is_visible ? "Visible" : "Hidden"} · {entry.item.is_available ? "Available" : "Sold out"}</p></li>)}</ul>
+      <ul className="max-h-96 divide-y divide-line overflow-y-auto rounded-xl border border-line bg-surface px-4">{items.map((entry, index) => <li key={index} className="py-4 text-sm"><p className="text-xs text-ink-muted">{entry.category}{entry.subcategory ? ` / ${entry.subcategory}` : ""}</p><h4 className="mt-1 break-words font-semibold">{entry.item.name}</h4>
+        {matches[index]?.kind === "exact" && <p className="mt-1 text-xs font-medium text-brand">Catalog dish</p>}
+        {matches[index]?.kind === "near" && <div className="mt-2 rounded-lg bg-brand-soft p-3">
+          {choices[index] === "use" ? <p>Using the catalog name <strong>{matches[index].dish.name}</strong>.</p> : choices[index] === "keep" ? <p>Keeping your name.</p> : <p>Did you mean <strong>{matches[index].dish.name}</strong>?</p>}
+          <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => choose(index, "use")} aria-pressed={choices[index] === "use"} className={secondaryClass}>Use suggestion</button><button type="button" onClick={() => choose(index, "keep")} aria-pressed={choices[index] === "keep"} className={secondaryClass}>Keep my name</button></div>
+        </div>}<p className="mt-1 text-ink-muted">{entry.item.variants.length ? entry.item.variants.map(variant => `${variant.name} ${formatPrice(variant.price_minor)}`).join(" · ") : formatPrice(entry.item.price_minor!)} · {entry.item.is_visible ? "Visible" : "Hidden"} · {entry.item.is_available ? "Available" : "Sold out"}</p></li>)}</ul>
       <label className="flex items-start gap-3 rounded-xl bg-brand-soft p-4 text-sm leading-6"><input type="checkbox" className="mt-1 h-5 w-5 shrink-0" checked={confirmed} disabled={pending || disabled || !!preview.issues.length} onChange={event => setConfirmed(event.target.checked)} /><span>I have checked every item, variant, price and allergen claim. Add these items to my menu.</span></label>
-      <button className={primaryClass} disabled={disabled || pending || !confirmed || !!preview.issues.length || !preview.items.length} onClick={() => onImport({ operation: "importItems", payload: { request_id: requestId, items: preview.items } }, () => setConfirmed(false))}>{pending ? "Importing…" : `Import ${preview.items.length} ${preview.items.length === 1 ? "item" : "items"}`}</button>
+      <button className={primaryClass} disabled={disabled || pending || !confirmed || !!preview.issues.length || !preview.items.length} onClick={() => onImport({ operation: "importItems", payload: { request_id: requestId, items } }, () => setConfirmed(false))}>{pending ? "Importing…" : `Import ${preview.items.length} ${preview.items.length === 1 ? "item" : "items"}`}</button>
     </div>}
   </section>;
 }

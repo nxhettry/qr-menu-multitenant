@@ -8,7 +8,7 @@ const identity = { id: z.uuid().optional() };
 export const categoryInput = z.object({ ...identity, parent_id: z.uuid().nullable().optional(), name: z.string().trim().min(1).max(100), name_ne: optionalText(100), is_visible: z.boolean() });
 export const variantInput = z.object({ name: z.string().trim().min(1).max(100), name_ne: optionalText(100), price_minor: money, is_available: z.boolean() });
 const itemFieldsInput = z.object({
-  ...identity, category_id: z.uuid(), name: z.string().trim().min(1).max(150), name_ne: optionalText(150),
+  ...identity, category_id: z.uuid(), name: z.string().trim().min(1).max(150), name_ne: optionalText(150), dish_id: z.uuid().nullable().optional(),
   description: optionalText(1000), description_ne: optionalText(1000),
   price_minor: money.nullable(), variants: z.array(variantInput).max(30),
   is_available: z.boolean(), is_visible: z.boolean().optional(), details: itemDetailsSchema.optional(), is_featured: z.boolean().optional(), diet: z.enum(["VEG", "NON_VEG", "EGG"]).nullable(),
