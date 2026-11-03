@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth/session";
 import { getTenantContext, TenantAccessError } from "@/lib/tenancy/context";
 import { getEditorData } from "@/lib/editor/repository";
 import { previewMenu } from "@/lib/editor/preview";
+import { PublicMenuSkeleton } from "@/components/ui/page-skeletons";
 import { PublicMenu } from "@/components/public-menu";
 import { linkClass, noticeClass } from "@/components/ui/form";
 
@@ -29,5 +30,5 @@ async function PreviewContent({ params }: { params: Promise<{ restaurantId: stri
 }
 
 export default function PreviewPage({ params }: { params: Promise<{ restaurantId: string }> }) {
-  return <Suspense fallback={<p role="status" className="p-10 text-center text-sm text-ink-muted">Loading preview…</p>}><PreviewContent params={params} /></Suspense>;
+  return <Suspense fallback={<PublicMenuSkeleton />}><PreviewContent params={params} /></Suspense>;
 }

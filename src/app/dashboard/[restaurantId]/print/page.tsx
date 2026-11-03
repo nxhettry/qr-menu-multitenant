@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PanelSkeleton } from "@/components/ui/page-skeletons";
 import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
@@ -45,5 +46,5 @@ async function PrintContent({ params, searchParams }: Props) {
 }
 
 export default function PrintPage(props: Props) {
-  return <Suspense fallback={<p role="status" className="p-10 text-center text-sm text-ink-muted">Preparing your QR code…</p>}><PrintContent {...props} /></Suspense>;
+  return <Suspense fallback={<div className="mx-auto max-w-3xl p-6"><PanelSkeleton label="Preparing your QR code" /></div>}><PrintContent {...props} /></Suspense>;
 }

@@ -3,6 +3,9 @@ import { SWRProvider } from "@/components/swr-provider";
 import { SetupStatus } from "@/components/setup-status";
 import { AppHeader, PageTitle } from "@/components/ui/brand";
 import { linkClass } from "@/components/ui/form";
+import { privateMetadata } from "@/lib/seo/site";
+
+export const metadata = privateMetadata("Setup — QR Menu");
 
 export default function SetupPage() {
   return <main className="mx-auto w-full max-w-2xl px-4 pb-16 sm:px-6">

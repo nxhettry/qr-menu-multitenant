@@ -8,8 +8,13 @@ import { AppHeader, PageTitle } from "@/components/ui/brand";
 import { StatusScreen } from "@/components/ui/status-screen";
 import { primaryClass } from "@/components/ui/form";
 import { logout } from "@/app/auth/actions";
+import { SignOutForm } from "@/components/ui/submit-button";
+import { DashboardSkeleton } from "@/components/ui/page-skeletons";
+import { privateMetadata } from "@/lib/seo/site";
 
-const signOut = <form action={logout}><button className="rounded-full px-3 py-2 font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink">Sign out</button></form>;
+export const metadata = privateMetadata("Your restaurants — QR Menu");
+
+const signOut = <SignOutForm action={logout} />;
 
 async function DashboardContent() {
   const user = await requireUser();
@@ -28,5 +33,5 @@ async function DashboardContent() {
   </main>;
 }
 export default function DashboardPage() {
-  return <Suspense fallback={<p role="status" className="p-10 text-center text-sm text-ink-muted">Loading your workspace…</p>}><DashboardContent /></Suspense>;
+  return <Suspense fallback={<DashboardSkeleton />}><DashboardContent /></Suspense>;
 }

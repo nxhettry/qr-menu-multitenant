@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
+import { AdminPageSkeleton } from "@/components/ui/page-skeletons";
 
-const fallback = <p role="status" className="py-16 text-center text-sm text-ink-muted">Loading…</p>;
+const fallback = <AdminPageSkeleton />;
 
 /** Request-time admin content streams behind Suspense so the portal chrome renders immediately. */
 export function AdminPage({ children }: { children: ReactNode }) {
