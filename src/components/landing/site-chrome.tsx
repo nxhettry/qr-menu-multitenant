@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo, LogoLockup, PoweredBy } from "@/components/ui/brand";
 import { primaryClass } from "@/components/ui/form";
 
-const navLinks = [["#features", "Features"], ["#how-it-works", "How it works"], ["/momo-house", "Example menu"]] as const;
+const navLinks = [["#features", "Features"], ["#how-it-works", "How it works"], ["/momo-house", "Example menu"], ["#faq", "FAQ"]] as const;
 
 export function SiteNav() {
   return <header className="sticky top-0 z-40 border-b border-line/60 bg-canvas/80 backdrop-blur-xl">
@@ -24,7 +24,7 @@ export function SiteFooter() {
     <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
       <div><Link href="/" aria-label="QR Menu home" className="inline-block"><LogoLockup className="h-14 w-auto sm:h-16" /></Link><p className="mt-3 max-w-xs text-sm leading-6 text-ink-muted">A free, phone-first digital menu for Nepal’s restaurants.</p></div>
       <div className="flex flex-col gap-3 text-sm sm:items-end">
-        <div className="flex gap-5 font-medium text-ink-muted"><Link href="/momo-house" className="hover:text-ink">Example menu</Link><Link href="/login" className="hover:text-ink">Sign in</Link><Link href="/register" className="hover:text-ink">Get started</Link></div>
+        <div className="flex gap-5 font-medium text-ink-muted"><Link href="/momo-house" className="hover:text-ink">Example menu</Link><Link href="/qr-menu/nepal" className="hover:text-ink">QR menu Nepal</Link><Link href="/qr-menu/kathmandu" className="hover:text-ink">Kathmandu</Link><Link href="/login" className="hover:text-ink">Sign in</Link><Link href="/register" className="hover:text-ink">Get started</Link></div>
         <div className="flex gap-5 text-ink-subtle"><Link href="/terms" className="hover:text-ink">Terms</Link><Link href="/privacy" className="hover:text-ink">Privacy</Link></div>
         <PoweredBy />
       </div>

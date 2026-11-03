@@ -157,6 +157,23 @@ try {
   assert((await page(base, "/other-kitchen")).body.includes("Other Kitchen"));
   console.log("PASS live menu, precise prices, sold-out labels, contact links, warm cache and tenant isolation");
 
+  assert(live.body.includes('rel="canonical"') && live.body.includes("/live-kitchen"), "menu pages need a canonical URL");
+  const menuLd = JSON.parse(/<script type="application\/ld\+json">(.*?)<\/script>/s.exec(live.body)?.[1] ?? "null");
+  assert.equal(menuLd?.["@type"], "Restaurant");
+  assert(menuLd.hasMenu.hasMenuSection.flatMap(section => section.hasMenuItem).some(item => item.name === "Test thali" && item.offers.priceCurrency === "NPR"), "menu structured data lists priced dishes");
+  const robots = await page(base, "/robots.txt");
+  assert(robots.body.includes("Disallow: /dashboard") && robots.body.includes("Sitemap: "), "robots.txt hides private areas and links the sitemap");
+  const sitemap = await page(base, "/sitemap.xml");
+  assert(sitemap.body.includes("/qr-menu/kathmandu") && sitemap.body.includes("/qr-menu/nepal"), "sitemap lists the city landing pages");
+  const city = await page(base, "/qr-menu/kathmandu");
+  assert.equal(city.response.status, 200);
+  assert(city.body.includes("Free QR menu for restaurants in Kathmandu") && city.body.includes("FAQPage") && city.body.includes('rel="canonical"'));
+  const unknownPlace = await page(base, "/qr-menu/atlantis");
+  assert(unknownPlace.response.status === 404 || unknownPlace.body.includes('name="robots" content="noindex"'), "unknown city pages must not be indexable");
+  const home = await page(base, "/");
+  assert(home.body.includes("SoftwareApplication") && home.body.includes("FAQPage") && home.body.includes("QR menu Nepal"));
+  console.log("PASS SEO: canonical URLs, Restaurant/FAQ structured data, robots.txt, sitemap and city landing pages");
+
   for (const [slug, secret] of [["private-draft", "Secret Draft Name"], ["paused-kitchen", "Secret Suspended Name"]]) {
     const { body } = await page(base, `/${slug}`);
     assert(body.includes("isn’t available right now"));

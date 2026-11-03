@@ -1,9 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { MenuIcon, type MenuIconName } from "@/components/menu/icon";
 import { PhoneMockup } from "@/components/landing/phone-mockup";
 import { SiteFooter, SiteNav } from "@/components/landing/site-chrome";
 import { RESTROFUEL_URL } from "@/components/ui/brand";
 import { eyebrowClass, primaryClass, secondaryClass } from "@/components/ui/form";
+import { FaqList } from "@/components/landing/faq-list";
+import { JsonLd } from "@/lib/seo/json-ld";
+import { faqJsonLd, generalFaqs } from "@/lib/seo/faq";
+import { places } from "@/lib/seo/places";
+import { absoluteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo/site";
+
+const homeTitle = "Free QR Menu for Restaurants in Nepal — Digital Menu Maker | QR Menu";
+export const metadata: Metadata = {
+  title: homeTitle, description: SITE_DESCRIPTION, alternates: { canonical: "/" },
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_NP", url: "/", title: homeTitle, description: SITE_DESCRIPTION },
+  twitter: { card: "summary_large_image", title: homeTitle, description: SITE_DESCRIPTION },
+};
+
+const structuredData = [
+  { "@context": "https://schema.org", "@type": "Organization", name: "RestroFuel", url: "https://restrofuel.kree.com.np", brand: { "@type": "Brand", name: SITE_NAME }, areaServed: { "@type": "Country", name: "Nepal" } },
+  { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: absoluteUrl("/"), inLanguage: ["en", "ne"], description: SITE_DESCRIPTION },
+  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: SITE_NAME, applicationCategory: "BusinessApplication", operatingSystem: "Web", description: SITE_DESCRIPTION, url: absoluteUrl("/"), offers: { "@type": "Offer", price: "0", priceCurrency: "NPR" }, areaServed: "NP" },
+  faqJsonLd(generalFaqs),
+];
 
 const highlights = ["No app to install", "English & नेपाली", "Updates instantly", "Free for restaurants"];
 
@@ -32,6 +52,7 @@ function SectionHeading({ eyebrow, title, body }: { eyebrow: string; title: stri
 
 export default function Home() {
   return <>
+    <JsonLd data={structuredData} />
     <SiteNav />
     <main className="overflow-x-clip">
       <section className="relative">
@@ -42,7 +63,7 @@ export default function Home() {
               <span className="rounded-full bg-brand-soft px-2 py-0.5 font-semibold text-brand">Free</span>Powered by RestroFuel<span aria-hidden="true">↗</span>
             </a>
             <h1 className="mt-6 text-[40px] font-bold leading-[1.08] tracking-tight sm:text-6xl">Your menu,<br /><span className="text-brand">one scan away.</span></h1>
-            <p className="mx-auto mt-6 max-w-lg text-base leading-7 text-ink-muted sm:text-lg sm:leading-8 lg:mx-0">A beautiful, phone-first QR menu for Nepal’s restaurants. Update dishes, prices and specials in seconds, and guests always see what’s fresh.</p>
+            <p className="mx-auto mt-6 max-w-lg text-base leading-7 text-ink-muted sm:text-lg sm:leading-8 lg:mx-0">The free digital QR code menu maker for restaurants, cafés and momo shops in Nepal. Update dishes, prices and specials in seconds, and guests always see what’s fresh.</p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
               <Link href="/register" className={`${primaryClass} px-7`}>Create your free menu<MenuIcon name="arrow" className="h-4 w-4" /></Link>
               <Link href="/momo-house" className={`${secondaryClass} px-7 py-3`}>View example menu</Link>
@@ -92,6 +113,19 @@ export default function Home() {
               <Link href="/register" className="inline-flex min-h-12 items-center justify-center rounded-full px-7 text-sm font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/10">Start with a free menu</Link>
             </div>
           </div>
+        </div>
+      </section>
+      <section id="faq" className="scroll-mt-20 border-t border-line bg-surface-muted/50 py-20 sm:py-24">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <SectionHeading eyebrow="FAQ" title="QR menu questions, answered." body="Everything Nepali restaurant owners ask before they go digital." />
+          <FaqList faqs={generalFaqs} className="mt-10" />
+        </div>
+      </section>
+
+      <section aria-labelledby="cities-heading" className="py-16">
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+          <h2 id="cities-heading" className="text-xl font-semibold tracking-tight">QR menus for restaurants across Nepal</h2>
+          <ul className="mt-6 flex flex-wrap justify-center gap-2">{places.map(place => <li key={place.slug}><Link href={`/qr-menu/${place.slug}`} className="inline-flex min-h-11 items-center rounded-full border border-line-strong px-4 text-sm font-medium text-ink-muted transition-colors hover:border-brand hover:text-brand">{place.kind === "country" ? "All of Nepal" : place.name}</Link></li>)}</ul>
         </div>
       </section>
     </main>
