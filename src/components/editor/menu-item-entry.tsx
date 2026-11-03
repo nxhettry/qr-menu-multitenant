@@ -15,7 +15,7 @@ type EntryProps = { item: EditorItem; category: EditorCategory; index: number; v
 
 const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const badgeClass = "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold";
-const overlayButton = "text-left transition-colors after:absolute after:inset-0 after:content-[''] hover:text-brand focus-visible:outline-none focus-visible:underline disabled:hover:text-ink";
+const overlayButton = "cursor-pointer text-left transition-colors after:absolute after:inset-0 after:content-[''] hover:text-brand focus-visible:outline-none focus-visible:underline";
 
 function Thumbnail({ item, grid }: { item: EditorItem; grid: boolean }) {
   const src = cloudinaryImageUrl(cloudName, item.image_public_id, item.image_version, grid ? 320 : 96, grid ? 240 : 96);
@@ -46,7 +46,10 @@ function ItemControls({ item, category, index, actions, className = "" }: Omit<E
   return <div className={`flex items-center ${className}`}>
     {reorderable && <button type="button" disabled={disabled} draggable={!disabled} onDragStart={event => actions.dragStart(event, "item", item.id, category.id)} aria-label={`Drag to reorder ${item.name}`}
       className="relative z-10 hidden h-11 w-9 cursor-grab items-center justify-center rounded-full text-ink-subtle hover:bg-surface-muted hover:text-ink disabled:opacity-50 sm:flex"><MenuIcon name="drag" className="h-5 w-5" /></button>}
+    <button type="button" disabled={disabled} onClick={() => actions.editItem(item)} aria-label={`Edit ${item.name}`}
+      className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink disabled:opacity-50"><MenuIcon name="edit" className="h-5 w-5" /></button>
     <ActionMenu label={`More actions for ${item.name}`} disabled={disabled} actions={[
+      { label: "View details", onSelect: () => actions.viewItem(item) },
       { label: "Edit item", onSelect: () => actions.editItem(item) },
       { label: item.image_public_id ? "Change photo" : "Add photo", onSelect: () => actions.itemPhoto(item) },
       { label: item.is_visible ? "Hide from menu" : "Show on menu", onSelect: () => actions.setVisible(item) },
@@ -59,7 +62,7 @@ function ItemControls({ item, category, index, actions, className = "" }: Omit<E
 
 export const MenuItemEntry = memo(function MenuItemEntry({ item, category, index, view, vat, actions }: EntryProps) {
   const dropProps = { onDragOver: actions.dragOver, onDrop: (event: DragEvent) => actions.drop(event, "item", item.id, category.id) };
-  const title = <button type="button" disabled={actions.disabled} onClick={() => actions.editItem(item)} className={overlayButton}>{item.name}</button>;
+  const title = <button type="button" aria-haspopup="dialog" onClick={() => actions.viewItem(item)} className={overlayButton}>{item.name}</button>;
   if (view === "grid") return <li {...dropProps} className={`${cardClass} relative flex flex-col transition-shadow hover:shadow-lift ${item.is_visible ? "" : "opacity-75"}`}>
     <Thumbnail item={item} grid />
     <div className="flex flex-1 flex-col p-3">

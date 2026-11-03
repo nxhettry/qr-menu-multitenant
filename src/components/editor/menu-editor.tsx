@@ -20,7 +20,7 @@ const BulkImport = dynamic(() => import("./bulk-import").then(module => module.B
 export function MenuEditor({ userId, restaurantId, initialData, canEdit, canManage, siteOrigin }: {
   userId: string; restaurantId: string; initialData: EditorData; canEdit: boolean; canManage: boolean; siteOrigin: string;
 }) {
-  const { data, error, pending, result, setResult, save, changeVatMode, refresh, isValidating } = useMenuEditor(userId, restaurantId, initialData);
+  const { data, error, pending, result, setResult, save, saveItem, changeVatMode, refresh, isValidating } = useMenuEditor(userId, restaurantId, initialData);
   const [tab, setTab] = useState<"menu" | "settings" | "import" | "display" | "qr">("menu");
   const tabsRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -69,7 +69,7 @@ export function MenuEditor({ userId, restaurantId, initialData, canEdit, canMana
       {!canManage && <p className="text-sm text-ink-muted">Only owners and managers can change restaurant settings.</p>}
       <SettingsForm key={restaurant.id} restaurant={restaurant} pending={pending} disabled={!canManage} onSave={payload => save({ operation: "settings", payload })} onChangeVatMode={openVatDialog} />
       <div className="grid gap-5 sm:grid-cols-2">{image("logo", restaurant.logo_public_id, restaurant.logo_version)}{image("cover", restaurant.cover_public_id, restaurant.cover_version)}</div>
-    </div> : <MenuWorkspace userId={userId} restaurantId={restaurantId} categories={categories} vat={vat} canEdit={canEdit} pending={pending} result={result} save={save} clearResult={clearResult} refresh={refreshImages} />}
+    </div> : <MenuWorkspace userId={userId} restaurantId={restaurantId} categories={categories} vat={vat} canEdit={canEdit} pending={pending} result={result} save={save} saveItem={saveItem} clearResult={clearResult} refresh={refreshImages} />}
     <button disabled={isValidating || pending} onClick={() => void refresh()} className="py-3 text-sm font-medium text-ink-muted hover:text-ink disabled:opacity-50">{isValidating ? "Refreshing…" : "Refresh menu"}</button>
   </div>;
 }

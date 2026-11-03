@@ -14,10 +14,14 @@ import { useDishIndex } from "@/hooks/use-dish-index";
 import { nearMissDish } from "@/lib/dishes/search";
 import type { CatalogDish } from "@/lib/dishes/schemas";
 import { DishNameField } from "./dish-name-field";
+import { ImageUploader } from "./image-uploader";
+import { ItemPhotoPicker } from "./item-photo-picker";
 
-export function ItemForm({ userId, item, categoryId, categories, vat, pending, error, onSave, onCancel }: {
-  userId: string; item?: EditorItem; categoryId: string; categories: EditorCategory[]; vat: VatRule; pending: boolean; error?: string;
-  onSave: (value: ItemInput) => void; onCancel: () => void;
+export type ItemPhotoControls = { restaurantId: string; canUpload: boolean; onSaved: () => Promise<unknown>; onRemove: (itemId: string) => void };
+
+export function ItemForm({ userId, item, categoryId, categories, vat, photo, pending, error, onSave, onCancel }: {
+  userId: string; item?: EditorItem; categoryId: string; categories: EditorCategory[]; vat: VatRule; photo: ItemPhotoControls; pending: boolean; error?: string;
+  onSave: (value: ItemInput, photo: File | null) => void; onCancel: () => void;
 }) {
   const { register, control, handleSubmit, setError, setValue, formState: { errors } } = useForm<ItemFields>({ defaultValues: {
     category_id: item?.category_id ?? categoryId, dish_id: item?.dish_id ?? "", name: item?.name ?? "", name_ne: item?.name_ne ?? "",
@@ -32,6 +36,7 @@ export function ItemForm({ userId, item, categoryId, categories, vat, pending, e
   const { fields, append, remove, move } = useFieldArray({ control, name: "variants" });
   const usesVariants = useWatch({ control, name: "uses_variants" });
   const dishIndex = useDishIndex(userId);
+  const [newPhoto, setNewPhoto] = useState<File | null>(null);
   const [nearMiss, setNearMiss] = useState<{ dish: CatalogDish; values: ItemFields } | null>(null);
   function submit(values: ItemFields, confirmed = false) {
     try {
@@ -51,7 +56,7 @@ export function ItemForm({ userId, item, categoryId, categories, vat, pending, e
       const suggestion = !confirmed && !values.dish_id && dishIndex && values.name.trim() !== item?.name ? nearMissDish(dishIndex, values.name) : null;
       if (suggestion) { setNearMiss({ dish: suggestion, values }); return; }
       setNearMiss(null);
-      onSave(parsed.data);
+      onSave(parsed.data, newPhoto);
     } catch (error) { setError("root", { message: error instanceof Error ? error.message : "Check your menu item." }); }
   }
   const acceptSuggestion = ({ dish, values }: NonNullable<typeof nearMiss>) =>
@@ -64,6 +69,10 @@ export function ItemForm({ userId, item, categoryId, categories, vat, pending, e
       <Field label="Nepali name (optional)"><input {...register("name_ne")} lang="ne" className={inputClass} maxLength={150} /></Field>
       <Field label="Description (optional)"><textarea {...register("description")} className={inputClass} rows={3} maxLength={1000} /></Field>
       <details className="text-sm"><summary className="cursor-pointer py-2">Nepali description</summary><textarea {...register("description_ne")} lang="ne" aria-label="Nepali description" className={inputClass} rows={3} maxLength={1000} /></details>
+      <p className={`border-t border-line pt-5 ${eyebrowClass}`}>Photo</p>
+      {item ? <ImageUploader bare restaurantId={photo.restaurantId} kind="item" itemId={item.id} publicId={item.image_public_id} version={item.image_version}
+        disabled={!photo.canUpload} onSaved={photo.onSaved} onRemove={() => photo.onRemove(item.id)} />
+        : <ItemPhotoPicker file={newPhoto} disabled={pending || !photo.canUpload} onChange={setNewPhoto} />}
       <p className={`border-t border-line pt-5 ${eyebrowClass}`}>Pricing & portions</p>
       <label className="flex min-h-11 items-center gap-3 text-sm"><input {...register("uses_variants")} type="checkbox" className="h-5 w-5" />Use variants, such as Half / Full or Small / Large</label>
       {!usesVariants ? <div><Field label="Price (Rs)"><input {...register("price")} className={inputClass} inputMode="decimal" placeholder="180.00" required /></Field><GuestPriceHint control={control} name="price" vat={vat} /></div> : <div className="space-y-4">

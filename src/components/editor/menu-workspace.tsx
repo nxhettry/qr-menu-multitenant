@@ -1,23 +1,30 @@
 "use client";
 import { useCallback, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import type { EditorCategory } from "@/lib/editor/data";
-import type { EditorMutation, MutationResult } from "@/lib/editor/schemas";
+import type { EditorMutation, ItemInput, MutationResult } from "@/lib/editor/schemas";
 import { useMenuEditorView } from "@/hooks/use-menu-editor-view";
 import { useMenuReorder } from "@/hooks/use-menu-reorder";
 import { Dialog, DialogFooter } from "@/components/ui/dialog";
 import { dangerClass, secondaryClass } from "@/components/ui/form";
 import { CategoryForm } from "./category-form";
-import { ItemForm } from "./item-form";
-import { ImageUploader } from "./image-uploader";
 import { CategorySection } from "./category-section";
 import { MenuToolbar } from "./menu-toolbar";
 import type { MenuEditorActions } from "./menu-actions";
 import type { VatRule } from "@/lib/menu/vat";
+import { ItemDialogSkeleton } from "@/components/ui/page-skeletons";
+import type { ItemPhotoControls } from "./item-form";
+
+const DialogLoading = () => <Dialog title="Loading…" size="lg" onClose={() => undefined}><ItemDialogSkeleton /></Dialog>;
+const ItemForm = dynamic(() => import("./item-form").then(module => module.ItemForm), { loading: DialogLoading });
+const ItemDetailsDialog = dynamic(() => import("./item-details-dialog").then(module => module.ItemDetailsDialog), { loading: DialogLoading });
+const ImageUploader = dynamic(() => import("./image-uploader").then(module => module.ImageUploader), { loading: () => <ItemDialogSkeleton /> });
 
 type DialogState =
   | { kind: "category"; categoryId?: string; parentId?: string }
   | { kind: "item"; categoryId: string; itemId?: string }
   | { kind: "photo"; itemId: string }
+  | { kind: "details"; itemId: string }
   | { kind: "remove"; target: "category" | "item"; id: string; name: string }
   | null;
 
@@ -27,9 +34,10 @@ function findItem(categories: EditorCategory[], id: string) {
   return categories.flatMap(category => category.items).find(item => item.id === id);
 }
 
-export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, pending, result, save, clearResult, refresh }: {
+export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, pending, result, save, saveItem, clearResult, refresh }: {
   userId: string; restaurantId: string; categories: EditorCategory[]; vat: VatRule; canEdit: boolean; pending: boolean; result: MutationResult;
-  save: (input: EditorMutation, onSuccess?: () => void) => void; clearResult: () => void; refresh: () => Promise<unknown>;
+  save: (input: EditorMutation, onSuccess?: () => void) => void; saveItem: (payload: ItemInput, photo: File | null, onSuccess?: () => void) => void;
+  clearResult: () => void; refresh: () => Promise<unknown>;
 }) {
   const view = useMenuEditorView(restaurantId, categories);
   const { reveal, revealNextCreated, expand } = view;
@@ -44,6 +52,7 @@ export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, 
     editCategory: category => openDialog({ kind: "category", categoryId: category.id }),
     addItem: categoryId => openDialog({ kind: "item", categoryId }),
     addSubcategory: parentId => openDialog({ kind: "category", parentId }),
+    viewItem: item => openDialog({ kind: "details", itemId: item.id }),
     editItem: item => openDialog({ kind: "item", categoryId: item.category_id, itemId: item.id }),
     itemPhoto: item => openDialog({ kind: "photo", itemId: item.id }),
     remove: (target, id, name) => openDialog({ kind: "remove", target, id, name }),
@@ -52,8 +61,13 @@ export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, 
   }), [disabled, view.searching, reorder, openDialog, save]);
 
   const editingCategory = dialog?.kind === "category" && dialog.categoryId ? categories.find(category => category.id === dialog.categoryId) : undefined;
-  const itemId = dialog?.kind === "item" || dialog?.kind === "photo" ? dialog.itemId : undefined;
+  const itemId = dialog?.kind === "item" || dialog?.kind === "photo" || dialog?.kind === "details" ? dialog.itemId : undefined;
   const editingItem = itemId ? findItem(categories, itemId) : undefined;
+
+  const photoControls = useMemo<ItemPhotoControls>(() => ({
+    restaurantId, canUpload: canEdit, onSaved: refresh,
+    onRemove: itemId => save({ operation: "removeImage", payload: { kind: "item", item_id: itemId } }),
+  }), [restaurantId, canEdit, refresh, save]);
 
   return <>
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -77,11 +91,13 @@ export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, 
         onSave={payload => save({ operation: "saveCategory", payload }, () => { if (!payload.id) revealNextCreated(); close(); })} />
     </Dialog>}
     {dialog?.kind === "item" && <Dialog title={editingItem ? "Edit item" : "Add an item"} description={editingItem?.name} size="lg" onClose={close}>
-      <ItemForm userId={userId} item={editingItem} categoryId={dialog.categoryId} categories={categories} vat={vat} pending={pending} error={result.error} onCancel={close}
-        onSave={payload => save({ operation: "saveItem", payload }, () => { expand(payload.category_id); close(); })} />
+      <ItemForm userId={userId} item={editingItem} categoryId={dialog.categoryId} categories={categories} vat={vat} photo={photoControls} pending={pending} error={result.error} onCancel={close}
+        onSave={(payload, photo) => saveItem(payload, photo, () => { expand(payload.category_id); close(); })} />
     </Dialog>}
+    {dialog?.kind === "details" && editingItem && <ItemDetailsDialog item={editingItem} categoryName={categories.find(category => category.id === editingItem.category_id)?.name} vat={vat}
+      disabled={disabled} onEdit={actions.editItem} onPhoto={actions.itemPhoto} onClose={close} />}
     {dialog?.kind === "photo" && editingItem && <Dialog title="Item photo" description={editingItem.name} onClose={close}>
-      <ImageUploader restaurantId={restaurantId} kind="item" itemId={editingItem.id} publicId={editingItem.image_public_id} version={editingItem.image_version}
+      <ImageUploader bare restaurantId={restaurantId} kind="item" itemId={editingItem.id} publicId={editingItem.image_public_id} version={editingItem.image_version}
         disabled={disabled} onSaved={refresh} onRemove={() => save({ operation: "removeImage", payload: { kind: "item", item_id: editingItem.id } })} />
     </Dialog>}
     {dialog?.kind === "remove" && <Dialog title={`Remove ${dialog.target}?`} size="sm" onClose={close}>
@@ -89,7 +105,7 @@ export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, 
       {result.error && <p role="alert" className="mt-3 text-sm text-danger">{result.error}</p>}
       <DialogFooter>
         <button type="button" disabled={disabled} onClick={() => save({ operation: "delete", payload: { kind: dialog.target, id: dialog.id } }, close)} className={dangerClass}>{pending ? "Removing…" : `Remove ${dialog.target}`}</button>
-        <button type="button" onClick={close} className={secondaryClass}>Cancel</button>
+        <button type="button" disabled={pending} onClick={close} className={secondaryClass}>Cancel</button>
       </DialogFooter>
     </Dialog>}
   </>;

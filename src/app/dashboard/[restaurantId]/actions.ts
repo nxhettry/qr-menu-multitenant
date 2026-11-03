@@ -20,9 +20,9 @@ async function commitAndInvalidate(restaurantId: string, commit: () => Promise<R
   try { invalidateMenu(restaurantId, receipt); }
   catch {
     console.error("Committed menu change needs cache refresh", { restaurantId });
-    return { message: "Saved.", warning: "Your change is saved, but the public menu refresh is delayed. Please check it again shortly." };
+    return { message: "Saved.", warning: "Your change is saved, but the public menu refresh is delayed. Please check it again shortly.", ...(receipt.id ? { id: receipt.id } : {}) };
   }
-  return { message: "Saved." };
+  return { message: "Saved.", ...(receipt.id ? { id: receipt.id } : {}) };
 }
 
 export async function mutateEditorAction(restaurantId: string, input: unknown): Promise<MutationResult> {

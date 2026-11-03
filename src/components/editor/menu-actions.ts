@@ -7,6 +7,7 @@ export type MenuEditorActions = {
   editCategory: (category: EditorCategory) => void;
   addItem: (categoryId: string) => void;
   addSubcategory: (parentId: string) => void;
+  viewItem: (item: EditorItem) => void;
   editItem: (item: EditorItem) => void;
   itemPhoto: (item: EditorItem) => void;
   remove: (kind: "category" | "item", id: string, name: string) => void;

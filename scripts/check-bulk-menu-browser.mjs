@@ -100,6 +100,11 @@ export async function checkBulkMenuBrowser({ browser, page, base, save, errors }
     await page.getByRole("button", { name: "List view", exact: true }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     await item.getByRole("button", { name: "Steamed momo", exact: true }).click();
+    const detailsDialog = page.getByRole("dialog", { name: "Steamed momo" });
+    await detailsDialog.waitFor();
+    await detailsDialog.evaluate(dialog => Promise.all(dialog.getAnimations().map(animation => animation.finished)));
+    await page.screenshot({ path: "artifacts/menu-editor-item-details-mobile.png" });
+    await detailsDialog.getByRole("button", { name: "Edit item", exact: true }).click();
     const itemDialog = page.getByRole("dialog", { name: "Edit item" });
     await itemDialog.waitFor();
     await itemDialog.evaluate(dialog => Promise.all(dialog.getAnimations().map(animation => animation.finished)));

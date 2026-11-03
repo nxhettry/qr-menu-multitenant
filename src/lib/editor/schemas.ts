@@ -47,7 +47,7 @@ export type CategoryInput = z.infer<typeof categoryInput>;
 export type ItemInput = z.infer<typeof itemInput>;
 export type SettingsInput = z.infer<typeof settingsInput>;
 export type VatModeInput = z.infer<typeof vatModeInput>;
-export type MutationResult = { error?: string; message?: string; warning?: string };
+export type MutationResult = { error?: string; message?: string; warning?: string; id?: string };
 
 export function parsePrice(value: string) {
   const match = /^(\d{1,8})(?:\.(\d{1,2}))?$/.exec(value.trim());

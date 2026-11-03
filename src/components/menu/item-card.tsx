@@ -16,7 +16,7 @@ export function MenuItemCard({ item, vat }: { item: MenuItem; vat: VatRule }) {
   const available = itemAvailable(item);
   const photos = fieldVisible(item.details, "photos");
   const special = item.isFeatured && fieldVisible(item.details, "badges");
-  return <article id={`dish-${item.id}`} className={`group scroll-mt-64 overflow-hidden rounded-2xl border border-line bg-surface shadow-card transition-shadow hover:shadow-lift has-[details[open]]:col-span-2`}>
+  return <article id={`dish-${item.id}`} className={`group scroll-mt-64 overflow-hidden rounded-2xl border border-line bg-surface shadow-card transition-shadow hover:shadow-lift has-[details[open]]:col-span-2 [contain-intrinsic-size:auto_300px] [content-visibility:auto]`}>
     {photos && <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-surface-muted text-ink-subtle/50">
       <MenuIcon name="bowl" className="h-10 w-10" />
       <MenuPhoto publicId={item.imagePublicId} version={item.imageVersion} alt={item.name} kind="item" className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${available ? "" : "grayscale"}`} />

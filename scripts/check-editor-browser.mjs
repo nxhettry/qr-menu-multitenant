@@ -141,9 +141,17 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     const item = category.locator("li").filter({ has: page.getByRole("heading", { name: "Phone momo", exact: true }) });
     await save(item.getByRole("button", { name: "Available", exact: true }));
     await item.getByRole("button", { name: "Sold out", exact: true }).waitFor();
-    await item.getByRole("button", { name: "More actions for Phone momo", exact: true }).click();
-    await item.getByRole("button", { name: "Edit item", exact: true }).click();
-    await page.getByRole("dialog", { name: "Edit item" }).waitFor();
+    await item.getByRole("button", { name: "Phone momo", exact: true }).click();
+    const details = page.getByRole("dialog", { name: "Phone momo" });
+    await details.waitFor();
+    assert.equal(await page.getByRole("dialog", { name: "Edit item" }).count(), 0, "clicking an item must show details, not the edit form");
+    await details.getByText("Price", { exact: true }).waitFor();
+    await details.getByRole("button", { name: "Close", exact: true }).first().click();
+    await details.waitFor({ state: "hidden" });
+    await item.getByRole("button", { name: "Edit Phone momo", exact: true }).click();
+    const editor = page.getByRole("dialog", { name: "Edit item" });
+    await editor.waitFor();
+    await editor.getByLabel("Upload item image", { exact: true }).waitFor({ state: "attached" });
     await page.getByLabel(/Use variants/).check();
     await page.getByRole("button", { name: "+ Add variant", exact: true }).click();
     await page.getByLabel("Variant name", { exact: true }).nth(0).fill("Veg");
@@ -169,6 +177,7 @@ export async function checkEditorBrowser({ base, cookie, restaurantId, draftId }
     await photo.getByText("Choose a still JPEG, PNG, or WebP image smaller than 3 MB and 20 megapixels.", { exact: true }).waitFor();
     await photo.getByRole("button", { name: "Close", exact: true }).click();
     await category.getByRole("button", { name: "+ Add item", exact: true }).click();
+    await page.getByLabel("Choose item photo", { exact: true }).waitFor({ state: "attached" });
     await page.getByLabel("Item name", { exact: true }).fill("Garden salad");
     await page.getByLabel("Price (Rs)", { exact: true }).fill("120");
     await page.getByLabel(/^Diet/).selectOption("VEG");
