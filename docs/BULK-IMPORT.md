@@ -2,6 +2,8 @@
 
 Use **Dashboard → restaurant → Bulk import**. Download the Excel workbook or UTF-8 CSV, replace its example rows with real items, upload it, review the preview, check the price/allergen confirmation, then import. The workbook has a separate Instructions sheet and dropdowns for boolean/diet/spice values.
 
+**Starter menus.** The same page offers ready-made lists for momo & fast food, cafés, Nepali thali and bar & restaurant, as Excel or CSV (`public/templates/menu-starter-<type>.*`). They hold categories, dish names, Nepali names and diet type, with **prices left blank** and no allergen data. Each blank price shows as a row error in the preview, so owners enter their own prices and delete dishes they do not serve. The dishes live in `scripts/starter-menus.mjs`; run `npm run generate:menu-template` to rebuild the files, and `scripts/test-starter-templates.mjs` checks each one against the real import parser.
+
 The hierarchy is **Category → Subcategory → Item → Variants**. For example:
 
 | category | subcategory | name | variant | price | type |

@@ -1,7 +1,21 @@
 import ExcelJS from "exceljs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { importColumns } from "../src/lib/editor/import.ts";
+import { starterTemplates } from "../src/lib/editor/starter-templates.ts";
+import { starterMenus } from "./starter-menus.mjs";
 
+const example = {
+  category: "Momo", subcategory: "Chicken", name: "Steamed momo", name_ne: "चिकेन म:म:",
+  description: "Steamed chicken dumplings with tomato achar.", description_ne: "", variant: "Half plate", variant_ne: "", price: "150.00", type: "Non-veg",
+  available: "TRUE", variant_available: "TRUE", visible: "TRUE", popular: "TRUE", new: "FALSE", featured: "FALSE",
+  tags: "House favourite|Handmade", prep_minutes: "15", calories: "320", spice: "1", allergens: "Wheat|Sesame",
+  allergen_notes: "Example only: verify ingredients with your kitchen.", addons: "Extra achar:30|Cheese:50", hidden_fields: "calories",
+};
+const exampleRows = [example, { ...example, variant: "Full plate", price: "250.00" }];
+const exampleNote = "Delete the two illustrative example rows. Add your real dishes to the Menu sheet. Example prices and allergen claims are not recommendations.";
+const starterNote = "Prices are blank on purpose: enter your own price on every row and delete the dishes you do not serve, or the preview will list them as errors. Add your own dishes below. Allergen information is not included; add only what you have verified.";
+
+function buildWorkbook({ rows, startNote }) {
 const workbook = new ExcelJS.Workbook();
 workbook.creator = "QR Menu";
 const sheet = workbook.addWorksheet("Menu", { views: [{ state: "frozen", ySplit: 1 }] });
@@ -13,22 +27,14 @@ sheet.getRow(1).eachCell(cell => {
   cell.alignment = { vertical: "middle" };
 });
 sheet.autoFilter = { from: "A1", to: "X1" };
-const example = {
-  category: "Momo", subcategory: "Chicken", name: "Steamed momo", name_ne: "चिकेन म:म:",
-  description: "Steamed chicken dumplings with tomato achar.", description_ne: "", variant: "Half plate", variant_ne: "", price: "150.00", type: "Non-veg",
-  available: "TRUE", variant_available: "TRUE", visible: "TRUE", popular: "TRUE", new: "FALSE", featured: "FALSE",
-  tags: "House favourite|Handmade", prep_minutes: "15", calories: "320", spice: "1", allergens: "Wheat|Sesame",
-  allergen_notes: "Example only: verify ingredients with your kitchen.", addons: "Extra achar:30|Cheese:50", hidden_fields: "calories",
-};
-sheet.addRow(example);
-sheet.addRow({ ...example, variant: "Full plate", price: "250.00" });
+for (const row of rows) sheet.addRow(row);
 for (const col of ["K", "L", "M", "N", "O", "P"]) sheet.dataValidations.add(`${col}2:${col}1001`, { type: "list", allowBlank: true, formulae: ['"TRUE,FALSE"'], showErrorMessage: true, error: "Choose TRUE or FALSE." });
 sheet.dataValidations.add("J2:J1001", { type: "list", allowBlank: true, formulae: ['"Veg,Non-veg,Egg"'], showErrorMessage: true, error: "Choose Veg, Non-veg, Egg, or leave blank." });
 sheet.dataValidations.add("T2:T1001", { type: "whole", operator: "between", allowBlank: true, formulae: [0, 3], showErrorMessage: true, error: "Use 0 (no spice), 1 (mild), 2 (medium), or 3 (hot)." });
 const notes = workbook.addWorksheet("Instructions");
 notes.columns = [{ header: "Field / topic", width: 30 }, { header: "Instructions", width: 110 }];
 notes.addRows([
-  ["Start here", "Delete the two illustrative example rows. Add your real dishes to the Menu sheet. Example prices and allergen claims are not recommendations."],
+  ["Start here", startNote],
   ["Limits", "Maximum 200 items / 1,000 rows, file up to 1 MB. Use plain values, not formulas, hyperlinks or date cells. Save as .xlsx or UTF-8 CSV."],
   ["Hierarchy", "Category → Subcategory → Item → Variants. Example: Momo → Chicken → Steamed momo → Half plate / Full plate."],
   ["Required columns", "category, name, price. Subcategory and other optional details can be blank."],
@@ -50,8 +56,19 @@ notes.addRows([
 ]);
 notes.getRow(1).font = { bold: true, color: { argb: "FF9A3412" } };
 notes.eachRow(row => { row.alignment = { wrapText: true, vertical: "top" }; row.height = 45; });
+return workbook;
+}
+const toCsv = rows => "\uFEFF" + [importColumns.join(","), ...rows.map(row => importColumns.map(key => '"' + String(row[key] ?? "").replaceAll('"', '""') + '"').join(","))].join("\r\n") + "\r\n";
+
+async function write(name, rows, startNote) {
+  await buildWorkbook({ rows, startNote }).xlsx.writeFile(`public/templates/${name}.xlsx`);
+  await writeFile(`public/templates/${name}.csv`, toCsv(rows), "utf8");
+}
+
 await mkdir("public/templates", { recursive: true });
-await workbook.xlsx.writeFile("public/templates/menu-import.xlsx");
-const csv = [importColumns.join(","), ...[example, { ...example, variant: "Full plate", price: "250.00" }].map(row => importColumns.map(key => '"' + String(row[key] ?? "").replaceAll('"', '""') + '"').join(","))].join("\r\n");
-await writeFile("public/templates/menu-import.csv", "\uFEFF" + csv + "\r\n", "utf8");
-console.log("Generated Excel and UTF-8 CSV menu templates.");
+await write("menu-import", exampleRows, exampleNote);
+for (const { slug } of starterTemplates) {
+  const rows = starterMenus[slug].map(([category, subcategory, name, name_ne, type]) => ({ category, subcategory, name, name_ne, type, price: "" }));
+  await write(`menu-starter-${slug}`, rows, starterNote);
+}
+console.log(`Generated Excel and UTF-8 CSV templates: 1 blank, ${starterTemplates.length} starter menus.`);

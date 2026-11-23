@@ -1,4 +1,5 @@
 "use client";
+import { StarterTemplates } from "./starter-templates";
 import type { EditorCategory } from "@/lib/editor/data";
 import type { EditorMutation } from "@/lib/editor/schemas";
 import { useMenuImport } from "@/hooks/use-menu-import";
@@ -15,6 +16,7 @@ export function BulkImport({ userId, categories, pending, disabled, onImport }: 
     <div><p className={eyebrowClass}>From your sheet to your menu</p><h2 className="mt-2 text-2xl font-semibold tracking-tight">Add items in bulk</h2><p className="mt-3 max-w-xl text-sm leading-6 text-ink-muted">Download a template, fill in your dishes, then review them here. Existing items stay untouched.</p></div>
     <ol className="grid gap-3 text-sm sm:grid-cols-3">{["1 · Fill in the template", "2 · Upload & review", "3 · Confirm & import"].map(step => <li key={step} className="rounded-xl border border-line bg-surface px-4 py-3 font-medium text-ink-muted">{step}</li>)}</ol>
     <div className="flex flex-wrap gap-3"><a href="/templates/menu-import.xlsx" download className={secondaryClass}>Download Excel template ↓</a><a href="/templates/menu-import.csv" download className={secondaryClass}>CSV template ↓</a></div>
+    <StarterTemplates />
     <details className="text-sm text-ink-muted"><summary className="cursor-pointer py-3 font-medium">How to fill your sheet</summary><div className="space-y-2 pb-3 leading-6"><p>Use Category → Subcategory → Item, for example Momo → Chicken → Steamed momo. Leave subcategory blank when it is not needed.</p><p>For Half / Full portions, repeat the item on two rows and change only variant, variant_ne, price and variant_available. Leave variant blank for a single-price item.</p><p>Prices are in rupees. Type is Veg, Non-veg, Egg or blank. Use TRUE/FALSE for checkboxes. Separate tags and allergens with |. Add-ons use Extra achar:30|Cheese:50. The workbook includes an Instructions sheet.</p><p>Import at most 200 items / 1,000 rows per file, up to 1 MB. Remove the illustrative example rows before adding your own menu.</p></div></details>
     <label className="block rounded-xl border border-dashed border-line-strong bg-surface p-5 text-sm font-medium">Choose your completed sheet<input type="file" accept=".xlsx,.csv" disabled={disabled || pending || reading} className="mt-3 block w-full min-w-0 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-brand-soft file:px-4 file:py-3 file:font-medium file:text-brand" onChange={event => { const file = event.target.files?.[0]; if (file) void read(file); }} /></label>
     {reading && <p role="status" className="text-sm text-ink-muted">Reading your sheet…</p>}
