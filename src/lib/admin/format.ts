@@ -19,6 +19,7 @@ const actionLabels: Record<string, string> = {
   "admin.abuse_report.dismissed": "Abuse report dismissed",
   "admin.abuse_report.open": "Abuse report reopened",
   "admin.photo.approve": "Shared photo approved",
+  "admin.photo.curated": "Library photo added",
   "admin.photo.reject": "Shared photo rejected",
   "account.deletion_requested": "Account deletion requested",
   "account.deletion_cancelled": "Account deletion cancelled",

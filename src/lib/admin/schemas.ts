@@ -92,5 +92,9 @@ export type PhotoReviewRow = z.infer<typeof photoReviewRowSchema>;
 export const photoReviewListQuery = z.object({ page, status: z.enum(["PENDING", "PUBLIC", "REJECTED"]).catch("PENDING") });
 export type PhotoReviewListQuery = z.infer<typeof photoReviewListQuery>;
 
+export const dishPhotoSchema = z.object({ id: z.uuid(), publicId: z.string(), version: z.coerce.number().int(), source: z.enum(["CURATED", "USER"]) });
+export type DishPhoto = z.infer<typeof dishPhotoSchema>;
+export const curatedPhotoResultSchema = z.object({ duplicate: z.boolean() });
+
 export const newPasswordSchema = z.string().min(8, "Use at least 8 characters").max(128);
 export type AdminActionState = { error?: string; message?: string };

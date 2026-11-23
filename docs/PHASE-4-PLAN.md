@@ -40,7 +40,8 @@ Drafted 29 October 2026. Cross-cutting cache profile, 4A and 4B are implemented,
 - **Quota** (D4): 15 uploads per rolling 24 hours, 50 in a restaurant's first 7 days, with a per-restaurant override on the admin restaurant page.
 - **Cleanup and deletion.** The Phase 5 cleanup keeps any file an item (in any restaurant) still shows and anything `PENDING`/`PUBLIC`. Deleting an account removes its private assets and files but keeps `PUBLIC` ones (the owner becomes null).
 - **Approval queue.** Migration `202611230003_photo_review.sql` (**not applied**), tested in `scripts/test-photo-review.mjs`. `/admin/photos` lists Waiting/Approved/Rejected photos with a preview; approving needs a dish (the item's dish, or one the admin picks), and any decision can be reversed. Approved photos appear in other restaurants' pickers.
-- **Not done:** curated upload attached to a dish, seeding the library (waiting for images, D2), moving logo/cover into assets, dropping the old columns. No browser run of the picker.
+- **Curated upload.** Migration `202611230004_curated_photos.sql` (**not applied**). The admin dish dialog has a "Library photos" section: add a photo (stored under `library/<dishId>/…`, public at once, duplicates by hash are skipped) and remove one (curated or shared). Route `/api/admin/dishes/<id>/photos`; shared upload checks moved to `src/lib/http/image-request.ts`.
+- **Not done:** seeding the library (waiting for images, D2), moving logo/cover into assets, dropping the old columns. No browser run of the picker.
 
 ## Goals
 

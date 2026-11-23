@@ -71,3 +71,45 @@ test("photo review: admins approve or reject shared photos", async t => {
     await assert.rejects(review(admin, id, "SHRUG"), /Invalid decision/);
   });
 });
+
+test("curated photos: admins add, list and remove them per dish", async t => {
+  const db = new PGlite();
+  t.after(() => db.close());
+  await db.exec(`create role anon; create role authenticated; create schema auth;
+    create table auth.users(id uuid primary key, email text, email_confirmed_at timestamptz, created_at timestamptz not null default now(),
+      last_sign_in_at timestamptz, banned_until timestamptz, raw_user_meta_data jsonb not null default '{}'::jsonb);
+    create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+    grant usage on schema auth,public to anon,authenticated;`);
+  const migrations = (await readdir(new URL("../supabase/migrations/", import.meta.url))).filter(file => file.endsWith(".sql")).sort();
+  for (const file of migrations) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"));
+  const [admin, user] = [randomUUID(), randomUUID()];
+  await db.query("insert into auth.users(id,email,email_confirmed_at) values ($1,'a@x.com',now()),($2,'u@x.com',now())", [admin, user]);
+  await db.query("insert into private.super_admins values($1)", [admin]);
+  const as = async (id, sql, params) => {
+    await db.exec("set role authenticated");
+    await db.query("select set_config('request.jwt.claim.sub',$1,false)", [id]);
+    try { return Object.values((await db.query(sql, params)).rows[0] ?? {})[0]; }
+    finally { await db.exec("reset role"); await db.query("select set_config('request.jwt.claim.sub','',false)"); }
+  };
+  const dish = (await db.query("select id from public.dishes where status='ACTIVE' order by slug limit 1")).rows[0].id;
+  const add = (id, publicId, sha) => as(id, "select public.admin_add_curated_photo($1,$2,1700000000,1200,900,$3)", [dish, publicId, sha]);
+  const path = () => `library/${dish}/${randomUUID()}`;
+  const sha = "c".repeat(64);
+
+  await t.test("only admins can add, and the path must belong to the dish", async () => {
+    await assert.rejects(add(user, path(), sha), error => error.code === "42501");
+    await assert.rejects(add(admin, `library/${randomUUID()}/${randomUUID()}`, sha), /Invalid photo/);
+    await assert.rejects(as(admin, "select public.admin_add_curated_photo($1,$2,1,10,10,$3)", [randomUUID(), path(), sha]), /Dish not found/);
+  });
+
+  await t.test("a curated photo is public at once, duplicates are reported, and removal hides it", async () => {
+    const first = await add(admin, path(), sha);
+    assert.equal(first.duplicate, false);
+    assert.equal((await add(admin, path(), sha)).duplicate, true);
+    const photos = await as(admin, "select public.admin_list_dish_photos($1)", [dish]);
+    assert.deepEqual(photos.map(photo => photo.source), ["CURATED"]);
+    await as(admin, "select public.admin_review_photo($1,'REJECT',null)", [first.id]);
+    assert.deepEqual(await as(admin, "select public.admin_list_dish_photos($1)", [dish]), []);
+    await assert.rejects(as(user, "select public.admin_list_dish_photos($1)", [dish]), error => error.code === "42501");
+  });
+});

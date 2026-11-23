@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
   ADMIN_EVENTS_LIMIT, ADMIN_PAGE_SIZE, adminEventSchema, adminOverviewSchema, adminRestaurantDetailSchema,
-  abuseReportRowSchema, photoReviewRowSchema, uploadLimitSchema, adminRestaurantRowSchema, adminUserDetailSchema, adminUserRowSchema, pageOf,
+  abuseReportRowSchema, curatedPhotoResultSchema, dishPhotoSchema, photoReviewRowSchema, uploadLimitSchema, adminRestaurantRowSchema, adminUserDetailSchema, adminUserRowSchema, pageOf,
   type AbuseReportListQuery, type PhotoReviewListQuery, type EventListQuery, type RestaurantListQuery, type UserListQuery,
 } from "./schemas";
 
@@ -29,6 +29,13 @@ export const listAbuseReports = ({ page, status }: AbuseReportListQuery) =>
 
 export const listPhotoReviews = ({ page, status }: PhotoReviewListQuery) =>
   callAdmin("admin_list_photo_reviews", { p_status: status, p_page: page, p_page_size: ADMIN_PAGE_SIZE }, pageOf(photoReviewRowSchema));
+
+export const listDishPhotos = (dishId: string) => callAdmin("admin_list_dish_photos", { p_dish_id: dishId }, z.array(dishPhotoSchema));
+
+export const addCuratedPhoto = (photo: { dishId: string; publicId: string; version: number; width: number; height: number; sha256: string }) =>
+  callAdmin("admin_add_curated_photo", {
+    p_dish_id: photo.dishId, p_public_id: photo.publicId, p_version: photo.version, p_width: photo.width, p_height: photo.height, p_sha256: photo.sha256,
+  }, curatedPhotoResultSchema);
 
 export const reviewPhoto = (id: string, decision: "APPROVE" | "REJECT", dishId: string | null) =>
   callAdmin("admin_review_photo", { p_id: id, p_decision: decision, p_dish_id: dishId }, z.null());

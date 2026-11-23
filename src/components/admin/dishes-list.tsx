@@ -10,6 +10,7 @@ import { cardClass, dangerClass, primaryClass, secondaryClass } from "@/componen
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ActionResult } from "./action-result";
 import { DishForm } from "./dish-form";
+import { DishPhotos } from "./dish-photos";
 import { DishPicker } from "./dish-picker";
 import { ListError, Pagination, SearchField } from "./list-controls";
 
@@ -49,6 +50,7 @@ export function DishesList({ userId, initialParams, initialData }: { userId: str
     </>}
     {dialog?.kind === "edit" && <Dialog title={dialog.dish ? "Edit dish" : "Add a dish"} description={dialog.dish?.name} size="lg" onClose={close}>
       <DishForm dish={dialog.dish} pending={pending} error={result.error} onSave={save} onCancel={close} />
+      {dialog.dish && <DishPhotos userId={userId} dishId={dialog.dish.id} />}
       {dialog.dish && <div className="mt-6 border-t border-line pt-5">
         <p className="text-sm text-ink-muted">Same dish listed twice? Merge this one into another: its menu items move across and its names become aliases.</p>
         <button type="button" onClick={() => setDialog({ kind: "merge", dish: dialog.dish! })} className={`${secondaryClass} mt-3`}>Merge into another dish…</button>

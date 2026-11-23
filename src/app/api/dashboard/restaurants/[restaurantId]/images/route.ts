@@ -3,35 +3,15 @@ import { z } from "zod";
 import { can, getTenantContext, TenantAccessError } from "@/lib/tenancy/context";
 import { executeMenuMutation, MenuEditError } from "@/lib/editor/repository";
 import { invalidateMenu } from "@/lib/editor/invalidation";
-import { MAX_MULTIPART_BYTES, prepareImage } from "@/lib/cloudinary/prepare-image";
+import { prepareImage } from "@/lib/cloudinary/prepare-image";
 import { discardMenuImage, uploadMenuImage } from "@/lib/cloudinary/upload";
 import { findReusableAssetId } from "@/lib/media/repository";
 import { SHARE_PHOTO_FIELD } from "@/lib/media/schemas";
+import { boundedFormData, isSameOrigin } from "@/lib/http/image-request";
 import { checkRateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0" };
 const targetSchema = z.object({ kind: z.enum(["logo", "cover", "item"]), item_id: z.uuid().optional() });
-
-async function boundedFormData(request: Request) {
-  if (!request.body || !request.headers.get("content-type")?.startsWith("multipart/form-data;")) throw new Error("Choose an image file.");
-  if (Number(request.headers.get("content-length")) > MAX_MULTIPART_BYTES) throw new Error("Choose an image smaller than 3 MB.");
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > MAX_MULTIPART_BYTES) {
-        await reader.cancel();
-        throw new Error("Choose an image smaller than 3 MB.");
-      }
-      chunks.push(value);
-    }
-  } finally { reader.releaseLock(); }
-  return new Response(Buffer.concat(chunks), { headers: { "Content-Type": request.headers.get("content-type")! } }).formData();
-}
 
 function respondSaved(restaurantId: string, receipt: Awaited<ReturnType<typeof executeMenuMutation>>) {
   try { invalidateMenu(restaurantId, receipt, true); }
@@ -47,13 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ res
   let shareRequested = false;
   try {
     const context = await getTenantContext((await params).restaurantId);
-    let sameOrigin = false;
-    try {
-      const origin = request.headers.get("origin");
-      const parsed = new URL(origin ?? "");
-      sameOrigin = parsed.origin === origin && ["https:", "http:"].includes(parsed.protocol) && parsed.host === request.headers.get("host");
-    } catch { sameOrigin = false; }
-    if (!sameOrigin) return Response.json({ error: "Reload this page before uploading." }, { status: 403, headers });
+    if (!isSameOrigin(request)) return Response.json({ error: "Reload this page before uploading." }, { status: 403, headers });
     const limit = await checkRateLimit("imageUpload", context.userId);
     if (!limit.allowed) return rateLimitedResponse(limit.retryAfter, headers);
     const url = new URL(request.url);
