@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import { useSWRConfig } from "swr";
 import type { EditorCategory } from "@/lib/editor/data";
 import type { EditorMutation, ItemInput, MutationResult } from "@/lib/editor/schemas";
 import { useMenuEditorView } from "@/hooks/use-menu-editor-view";
@@ -34,8 +35,8 @@ function findItem(categories: EditorCategory[], id: string) {
   return categories.flatMap(category => category.items).find(item => item.id === id);
 }
 
-export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, pending, result, save, saveItem, clearResult, refresh }: {
-  userId: string; restaurantId: string; categories: EditorCategory[]; vat: VatRule; canEdit: boolean; pending: boolean; result: MutationResult;
+export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, canManage, pending, result, save, saveItem, clearResult, refresh }: {
+  userId: string; restaurantId: string; categories: EditorCategory[]; vat: VatRule; canEdit: boolean; canManage: boolean; pending: boolean; result: MutationResult;
   save: (input: EditorMutation, onSuccess?: () => void) => void; saveItem: (payload: ItemInput, photo: File | null, onSuccess?: () => void) => void;
   clearResult: () => void; refresh: () => Promise<unknown>;
 }) {
@@ -64,10 +65,15 @@ export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, 
   const itemId = dialog?.kind === "item" || dialog?.kind === "photo" || dialog?.kind === "details" ? dialog.itemId : undefined;
   const editingItem = itemId ? findItem(categories, itemId) : undefined;
 
+  const { mutate } = useSWRConfig();
+  const refreshPhotos = useCallback(() => void mutate(key => Array.isArray(key) && typeof key[0] === "string" && key[0].includes("/photos?")), [mutate]);
   const photoControls = useMemo<ItemPhotoControls>(() => ({
     restaurantId, canUpload: canEdit, onSaved: refresh,
+    library: itemId => ({ userId, canShare: canManage,
+      onUse: assetId => save({ operation: "useAsset", payload: { item_id: itemId, asset_id: assetId } }, refreshPhotos),
+      onShare: (assetId, share) => save({ operation: "shareAsset", payload: { asset_id: assetId, share } }, refreshPhotos) }),
     onRemove: itemId => save({ operation: "removeImage", payload: { kind: "item", item_id: itemId } }),
-  }), [restaurantId, canEdit, refresh, save]);
+  }), [userId, restaurantId, canEdit, canManage, refresh, refreshPhotos, save]);
 
   return <>
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -97,7 +103,7 @@ export function MenuWorkspace({ userId, restaurantId, categories, vat, canEdit, 
     {dialog?.kind === "details" && editingItem && <ItemDetailsDialog item={editingItem} categoryName={categories.find(category => category.id === editingItem.category_id)?.name} vat={vat}
       disabled={disabled} onEdit={actions.editItem} onPhoto={actions.itemPhoto} onClose={close} />}
     {dialog?.kind === "photo" && editingItem && <Dialog title="Item photo" description={editingItem.name} onClose={close}>
-      <ImageUploader bare restaurantId={restaurantId} kind="item" itemId={editingItem.id} publicId={editingItem.image_public_id} version={editingItem.image_version}
+      <ImageUploader bare restaurantId={restaurantId} kind="item" itemId={editingItem.id} publicId={editingItem.image_public_id} version={editingItem.image_version} library={photoControls.library(editingItem.id)}
         disabled={disabled} onSaved={refresh} onRemove={() => save({ operation: "removeImage", payload: { kind: "item", item_id: editingItem.id } })} />
     </Dialog>}
     {dialog?.kind === "remove" && <Dialog title={`Remove ${dialog.target}?`} size="sm" onClose={close}>

@@ -14,10 +14,10 @@ import { useDishIndex } from "@/hooks/use-dish-index";
 import { nearMissDish } from "@/lib/dishes/search";
 import type { CatalogDish } from "@/lib/dishes/schemas";
 import { DishNameField } from "./dish-name-field";
-import { ImageUploader } from "./image-uploader";
+import { ImageUploader, type ItemLibraryControls } from "./image-uploader";
 import { ItemPhotoPicker } from "./item-photo-picker";
 
-export type ItemPhotoControls = { restaurantId: string; canUpload: boolean; onSaved: () => Promise<unknown>; onRemove: (itemId: string) => void };
+export type ItemPhotoControls = { restaurantId: string; canUpload: boolean; onSaved: () => Promise<unknown>; onRemove: (itemId: string) => void; library: (itemId: string) => ItemLibraryControls };
 
 export function ItemForm({ userId, item, categoryId, categories, vat, photo, pending, error, onSave, onCancel }: {
   userId: string; item?: EditorItem; categoryId: string; categories: EditorCategory[]; vat: VatRule; photo: ItemPhotoControls; pending: boolean; error?: string;
@@ -70,7 +70,7 @@ export function ItemForm({ userId, item, categoryId, categories, vat, photo, pen
       <Field label="Description (optional)"><textarea {...register("description")} className={inputClass} rows={3} maxLength={1000} /></Field>
       <details className="text-sm"><summary className="cursor-pointer py-2">Nepali description</summary><textarea {...register("description_ne")} lang="ne" aria-label="Nepali description" className={inputClass} rows={3} maxLength={1000} /></details>
       <p className={`border-t border-line pt-5 ${eyebrowClass}`}>Photo</p>
-      {item ? <ImageUploader bare restaurantId={photo.restaurantId} kind="item" itemId={item.id} publicId={item.image_public_id} version={item.image_version}
+      {item ? <ImageUploader bare restaurantId={photo.restaurantId} kind="item" itemId={item.id} publicId={item.image_public_id} version={item.image_version} library={photo.library(item.id)}
         disabled={!photo.canUpload} onSaved={photo.onSaved} onRemove={() => photo.onRemove(item.id)} />
         : <ItemPhotoPicker file={newPhoto} disabled={pending || !photo.canUpload} onChange={setNewPhoto} />}
       <p className={`border-t border-line pt-5 ${eyebrowClass}`}>Pricing & portions</p>

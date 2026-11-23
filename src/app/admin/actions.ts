@@ -10,7 +10,7 @@ import { authErrorMessage } from "@/lib/auth/errors";
 import { CAPTCHA_FAILED_MESSAGE, captchaOptions, isCaptchaError } from "@/lib/auth/captcha";
 import { assertSuperAdmin } from "@/lib/admin/session";
 import { checkRateLimit, checkRateLimitByIp, RATE_LIMITED_MESSAGE } from "@/lib/rate-limit";
-import { getAdminUser, logAdminUserAction, resolveAbuseReport, setRestaurantSuspended, type AdminUserAction } from "@/lib/admin/repository";
+import { getAdminUser, logAdminUserAction, resolveAbuseReport, reviewPhoto, setUploadLimit, setRestaurantSuspended, type AdminUserAction } from "@/lib/admin/repository";
 import { newPasswordSchema, type AdminActionState } from "@/lib/admin/schemas";
 import { invalidateMenu } from "@/lib/editor/invalidation";
 import { candidateResolution, dishInput } from "@/lib/dishes/schemas";
@@ -135,6 +135,27 @@ export async function resolveAbuseReportAction(reportId: string, status: "OPEN" 
     await resolveAbuseReport(reportId, status);
   } catch { return { error: "Could not update the report. Please try again." }; }
   return { message: status === "OPEN" ? "Report reopened." : status === "RESOLVED" ? "Report resolved." : "Report dismissed." };
+}
+
+export async function reviewPhotoAction(assetId: string, decision: "APPROVE" | "REJECT", dishId: string | null): Promise<AdminActionState> {
+  const parsed = z.object({ id: z.uuid(), decision: z.enum(["APPROVE", "REJECT"]), dishId: z.uuid().nullable() }).safeParse({ id: assetId, decision, dishId });
+  if (!parsed.success) return { error: "Photo not found." };
+  try {
+    if (!await assertAdminWithinLimit()) return { error: RATE_LIMITED_MESSAGE };
+    await reviewPhoto(parsed.data.id, parsed.data.decision, parsed.data.dishId);
+  } catch { return { error: "Could not save the decision. Choose a dish if the photo has none, then try again." }; }
+  return { message: decision === "APPROVE" ? "Photo approved." : "Photo rejected." };
+}
+
+export async function setUploadLimitAction(restaurantId: string, limit: number | null): Promise<AdminActionState> {
+  const parsed = z.object({ id: z.uuid(), limit: z.number().int().min(1).max(500).nullable() }).safeParse({ id: restaurantId, limit });
+  if (!parsed.success) return { error: "Enter a limit between 1 and 500." };
+  try {
+    if (!await assertAdminWithinLimit()) return { error: RATE_LIMITED_MESSAGE };
+    await setUploadLimit(parsed.data.id, parsed.data.limit);
+  } catch { return { error: "Could not update the upload limit. Please try again." }; }
+  refresh();
+  return { message: parsed.data.limit === null ? "Upload limit reset to the default." : `Upload limit set to ${parsed.data.limit} per day.` };
 }
 
 const dishFailure: AdminActionState = { error: "Could not update the dish catalog. Please try again." };

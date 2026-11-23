@@ -3,8 +3,8 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
   ADMIN_EVENTS_LIMIT, ADMIN_PAGE_SIZE, adminEventSchema, adminOverviewSchema, adminRestaurantDetailSchema,
-  abuseReportRowSchema, adminRestaurantRowSchema, adminUserDetailSchema, adminUserRowSchema, pageOf,
-  type AbuseReportListQuery, type EventListQuery, type RestaurantListQuery, type UserListQuery,
+  abuseReportRowSchema, photoReviewRowSchema, uploadLimitSchema, adminRestaurantRowSchema, adminUserDetailSchema, adminUserRowSchema, pageOf,
+  type AbuseReportListQuery, type PhotoReviewListQuery, type EventListQuery, type RestaurantListQuery, type UserListQuery,
 } from "./schemas";
 
 export async function callAdmin<T extends z.ZodType>(fn: string, args: Record<string, unknown>, schema: T): Promise<z.infer<T>> {
@@ -27,8 +27,20 @@ export const listAdminRestaurants = ({ q, page, status }: RestaurantListQuery) =
 export const listAbuseReports = ({ page, status }: AbuseReportListQuery) =>
   callAdmin("admin_list_abuse_reports", { p_status: status === "ALL" ? null : status, p_page: page, p_page_size: ADMIN_PAGE_SIZE }, pageOf(abuseReportRowSchema));
 
+export const listPhotoReviews = ({ page, status }: PhotoReviewListQuery) =>
+  callAdmin("admin_list_photo_reviews", { p_status: status, p_page: page, p_page_size: ADMIN_PAGE_SIZE }, pageOf(photoReviewRowSchema));
+
+export const reviewPhoto = (id: string, decision: "APPROVE" | "REJECT", dishId: string | null) =>
+  callAdmin("admin_review_photo", { p_id: id, p_decision: decision, p_dish_id: dishId }, z.null());
+
 export const resolveAbuseReport = (id: string, status: "OPEN" | "RESOLVED" | "DISMISSED") =>
   callAdmin("admin_resolve_abuse_report", { p_id: id, p_status: status }, z.null());
+
+export const getUploadLimit = (restaurantId: string) =>
+  callAdmin("admin_get_upload_limit", { p_restaurant_id: restaurantId }, uploadLimitSchema);
+
+export const setUploadLimit = (restaurantId: string, limit: number | null) =>
+  callAdmin("admin_set_upload_limit", { p_restaurant_id: restaurantId, p_limit: limit }, z.null());
 
 export const getAdminUser = (userId: string) =>
   callAdmin("admin_get_user", { p_user_id: userId }, adminUserDetailSchema.nullable());

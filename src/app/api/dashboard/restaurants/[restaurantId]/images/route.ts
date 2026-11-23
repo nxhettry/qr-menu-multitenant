@@ -1,9 +1,12 @@
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { can, getTenantContext, TenantAccessError } from "@/lib/tenancy/context";
 import { executeMenuMutation, MenuEditError } from "@/lib/editor/repository";
 import { invalidateMenu } from "@/lib/editor/invalidation";
 import { MAX_MULTIPART_BYTES, prepareImage } from "@/lib/cloudinary/prepare-image";
 import { discardMenuImage, uploadMenuImage } from "@/lib/cloudinary/upload";
+import { findReusableAssetId } from "@/lib/media/repository";
+import { SHARE_PHOTO_FIELD } from "@/lib/media/schemas";
 import { checkRateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0" };
@@ -30,8 +33,18 @@ async function boundedFormData(request: Request) {
   return new Response(Buffer.concat(chunks), { headers: { "Content-Type": request.headers.get("content-type")! } }).formData();
 }
 
+function respondSaved(restaurantId: string, receipt: Awaited<ReturnType<typeof executeMenuMutation>>) {
+  try { invalidateMenu(restaurantId, receipt, true); }
+  catch {
+    console.error("Uploaded menu image needs cache refresh", { restaurantId });
+    return Response.json({ message: "Image saved.", warning: "Your image is saved, but the public menu refresh is delayed." }, { headers });
+  }
+  return Response.json({ message: "Image saved." }, { headers });
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ restaurantId: string }> }) {
   let uploadedId: string | undefined;
+  let shareRequested = false;
   try {
     const context = await getTenantContext((await params).restaurantId);
     let sameOrigin = false;
@@ -48,27 +61,33 @@ export async function POST(request: Request, { params }: { params: Promise<{ res
     if (!target.success || (target.data.kind === "item" && !target.data.item_id)) return Response.json({ error: "Choose an image target." }, { status: 400, headers });
     const management = target.data.kind !== "item";
     if (!can(context, management ? "restaurant:manage" : "menu:edit")) return Response.json({ error: "Editing is not permitted." }, { status: 403, headers });
-    const reservation = await executeMenuMutation(context, "reserveUpload", target.data, management);
-    if (!reservation.publicId || !reservation.uploadId) throw new Error("Image upload unavailable");
     let image;
     try {
       const form = await boundedFormData(request);
       const file = form.get("image");
       if (!(file instanceof File)) throw new Error("Choose an image file.");
       image = await prepareImage(new Uint8Array(await file.arrayBuffer()), file.type);
+      shareRequested = form.get(SHARE_PHOTO_FIELD) === "on";
     } catch {
       return Response.json({ error: "Choose a still JPEG, PNG, or WebP image smaller than 3 MB and 20 megapixels." }, { status: 400, headers });
     }
+    const sha256 = createHash("sha256").update(image.bytes).digest("hex");
+    if (target.data.kind === "item") {
+      const existing = await findReusableAssetId(context, sha256);
+      if (existing) {
+        const receipt = await executeMenuMutation(context, "useAsset", { item_id: target.data.item_id, asset_id: existing }, false);
+        return respondSaved(context.restaurantId, receipt);
+      }
+    }
+    const reservation = await executeMenuMutation(context, "reserveUpload", target.data, management);
+    if (!reservation.publicId || !reservation.uploadId) throw new Error("Image upload unavailable");
     const version = await uploadMenuImage(reservation.publicId, image.bytes);
     uploadedId = reservation.publicId;
-    const receipt = await executeMenuMutation(context, "attachImage", { upload_id: reservation.uploadId, version }, management);
+    const receipt = await executeMenuMutation(context, "attachImage", {
+      upload_id: reservation.uploadId, version, sha256, width: image.width, height: image.height, share: shareRequested && target.data.kind === "item",
+    }, management);
     uploadedId = undefined;
-    try { invalidateMenu(context.restaurantId, receipt, true); }
-    catch {
-      console.error("Uploaded menu image needs cache refresh", { restaurantId: context.restaurantId });
-      return Response.json({ message: "Image saved.", warning: "Your image is saved, but the public menu refresh is delayed." }, { headers });
-    }
-    return Response.json({ message: "Image saved." }, { headers });
+    return respondSaved(context.restaurantId, receipt);
   } catch (error) {
     if (uploadedId) await discardMenuImage(uploadedId);
     if (error instanceof TenantAccessError) return Response.json({ error: error.message }, { status: error.status, headers });

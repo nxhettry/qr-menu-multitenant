@@ -23,7 +23,7 @@ export async function getRestaurantLink(context: TenantContext) {
 }
 
 export function requiresManagement(input: EditorMutation) {
-  return input.operation === "settings" || input.operation === "visibility" || input.operation === "displaySettings" ||
+  return input.operation === "settings" || input.operation === "visibility" || input.operation === "displaySettings" || input.operation === "shareAsset" ||
     (input.operation === "removeImage" && input.payload.kind !== "item");
 }
 
@@ -36,7 +36,7 @@ const safeMessages = new Set([
   "Add an item to a visible category before publishing", "Move or remove the items in this category first",
   "The menu changed. Refresh before reordering", "Category limit reached", "Item limit reached",
   "Daily image upload limit reached. Try again tomorrow", "Confirm example prices before adding them to a published menu",
-  "A converted price would exceed the maximum",
+  "A converted price would exceed the maximum", "Photo not available", "Photo sharing can’t be changed",
 ]);
 
 async function callMenuRpc(context: TenantContext, management: boolean, call: (supabase: Awaited<ReturnType<typeof createClient>>) => PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>) {

@@ -40,6 +40,8 @@ export const editorMutation = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("delete"), payload: z.object({ kind: z.enum(["category", "item"]), id: z.uuid() }) }),
   z.object({ operation: z.literal("availability"), payload: z.object({ id: z.uuid(), available: z.boolean() }) }),
   z.object({ operation: z.literal("reorder"), payload: z.object({ kind: z.enum(["category", "item"]), category_id: z.uuid().optional(), ids: z.array(z.uuid()).max(1000).refine(ids => new Set(ids).size === ids.length) }) }),
+  z.object({ operation: z.literal("useAsset"), payload: z.object({ item_id: z.uuid(), asset_id: z.uuid() }) }),
+  z.object({ operation: z.literal("shareAsset"), payload: z.object({ asset_id: z.uuid(), share: z.boolean() }) }),
   z.object({ operation: z.literal("removeImage"), payload: z.object({ kind: z.enum(["logo", "cover", "item"]), item_id: z.uuid().optional() }) }),
 ]);
 export type EditorMutation = z.infer<typeof editorMutation>;

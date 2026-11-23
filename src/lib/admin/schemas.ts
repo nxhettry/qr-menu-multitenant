@@ -50,6 +50,9 @@ export const adminRestaurantDetailSchema = z.object({
 });
 export type AdminRestaurantDetail = z.infer<typeof adminRestaurantDetailSchema>;
 
+export const uploadLimitSchema = z.object({ limit: count, overridden: z.boolean(), usedToday: count });
+export type UploadLimit = z.infer<typeof uploadLimitSchema>;
+
 export const adminEventSchema = z.object({
   id: z.uuid(), action: z.string(), createdAt: timestamp, metadata: z.record(z.string(), z.unknown()),
   restaurantId: z.uuid().nullable(), restaurantName: z.string().nullable(), actorEmail: z.string().nullable(),
@@ -79,6 +82,15 @@ export const abuseReportRowSchema = z.object({
 export type AbuseReportRow = z.infer<typeof abuseReportRowSchema>;
 export const abuseReportListQuery = z.object({ page, status: z.enum(["OPEN", "RESOLVED", "DISMISSED", "ALL"]).catch("OPEN") });
 export type AbuseReportListQuery = z.infer<typeof abuseReportListQuery>;
+
+export const photoReviewRowSchema = z.object({
+  id: z.uuid(), publicId: z.string(), version: z.coerce.number().int(), visibility: z.enum(["PENDING", "PUBLIC", "REJECTED"]),
+  restaurantId: z.uuid().nullable(), restaurantName: z.string().nullable(), restaurantSlug: z.string().nullable(),
+  dishId: z.uuid().nullable(), dishName: z.string().nullable(), createdAt: timestamp,
+});
+export type PhotoReviewRow = z.infer<typeof photoReviewRowSchema>;
+export const photoReviewListQuery = z.object({ page, status: z.enum(["PENDING", "PUBLIC", "REJECTED"]).catch("PENDING") });
+export type PhotoReviewListQuery = z.infer<typeof photoReviewListQuery>;
 
 export const newPasswordSchema = z.string().min(8, "Use at least 8 characters").max(128);
 export type AdminActionState = { error?: string; message?: string };

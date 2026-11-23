@@ -1,6 +1,6 @@
 # Phase 4 — VAT pricing, dish catalog, shared images, RestroFuel Connect
 
-Drafted 29 October 2026. Cross-cutting cache profile, 4A and 4B are implemented (see "Implementation status"); 4C–4D are not started. All decisions are recorded at the end.
+Drafted 29 October 2026. Cross-cutting cache profile, 4A and 4B are implemented, and 4C is implemented except the admin approval queue and curated upload (see "Implementation status"); 4D is not started. All decisions are recorded at the end.
 
 ## Implementation status
 
@@ -28,6 +28,19 @@ Drafted 29 October 2026. Cross-cutting cache profile, 4A and 4B are implemented 
 - **Admin:** `/admin/dishes` (search, status filter, add, edit, merge) and `/admin/dishes/review` (candidates by restaurant count: add as alias, create dish, dismiss).
 - **Differences from the sketch above:** no `pg_trgm` index yet (matching is exact on `search_keys` in SQL and fuzzy in the browser; add it in 4D when sync needs server-side fuzzy matching); the catalog has no has-image flag until 4C; the route is `/api/dashboard/dishes` (authenticated) rather than a public `/api/dishes`; parentheses are kept in names so `Chatamari (Plain)` and `Chatamari (Egg)` stay different dishes; the seed carries no aliases (add them in the admin page); existing menu items are not back-filled when the migration runs — they link when saved, or when an admin creates or edits a matching dish.
 - **Not verified:** the Nepali names in the seed come straight from the spreadsheet and have not had the native-speaker review the image plan calls for; no real Supabase project or Vercel preview; no physical phone.
+
+### 4C — Shared image library — owner side and approval queue done, migrations not applied
+
+- **Migration** `202611230002_media_library.sql` (**not applied to any Supabase project**; apply after the Phase 5 migration). Tested in `scripts/test-media-library.mjs`.
+- **Additive, by decision.** `public.media_assets` and `menu_items.image_asset_id` are new; `image_public_id`/`image_version` stay as a denormalised copy of the chosen asset, so every reader (public menu, editor, SEO) is unchanged and the old columns can be dropped in a later migration. Existing photos are not backfilled into `media_assets`; they stay as they are and are not offered for dedupe or in the picker.
+- **Uniqueness differs from the sketch:** `sha256` is unique per owning restaurant, not globally, so a restaurant never reuses another restaurant's private file (a deleted account's folder would break it).
+- **Dedupe.** The upload route hashes the processed image, and `find_reusable_asset` returns the restaurant's own or a public asset with the same hash; the item then points at it (`useAsset`, no Cloudinary upload, no quota use).
+- **Picker.** "Choose from library" in the item photo dialog and item form lists public photos for the item's dish and the restaurant's own uploads (`list_photo_options`, `/api/dashboard/restaurants/<id>/photos`). It is not offered while creating a new item, because the dish is only known after saving.
+- **Sharing.** Owners and managers can opt a photo in (`PRIVATE` to `PENDING`) and withdraw it. `PENDING` is not visible to anyone else.
+- **Quota** (D4): 15 uploads per rolling 24 hours, 50 in a restaurant's first 7 days, with a per-restaurant override on the admin restaurant page.
+- **Cleanup and deletion.** The Phase 5 cleanup keeps any file an item (in any restaurant) still shows and anything `PENDING`/`PUBLIC`. Deleting an account removes its private assets and files but keeps `PUBLIC` ones (the owner becomes null).
+- **Approval queue.** Migration `202611230003_photo_review.sql` (**not applied**), tested in `scripts/test-photo-review.mjs`. `/admin/photos` lists Waiting/Approved/Rejected photos with a preview; approving needs a dish (the item's dish, or one the admin picks), and any decision can be reversed. Approved photos appear in other restaurants' pickers.
+- **Not done:** curated upload attached to a dish, seeding the library (waiting for images, D2), moving logo/cover into assets, dropping the old columns. No browser run of the picker.
 
 ## Goals
 

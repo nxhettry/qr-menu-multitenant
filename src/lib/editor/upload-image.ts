@@ -1,3 +1,4 @@
+import { SHARE_PHOTO_FIELD } from "@/lib/media/schemas";
 import type { MutationResult } from "./schemas";
 
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -8,12 +9,13 @@ export function validateImageFile(file: File) {
   return file.size > MAX_IMAGE_BYTES || !IMAGE_TYPES.includes(file.type) ? "Choose a JPEG, PNG, or WebP image smaller than 3 MB." : undefined;
 }
 
-export async function uploadMenuImage(restaurantId: string, target: { kind: "logo" | "cover" | "item"; itemId?: string }, file: File): Promise<MutationResult> {
+export async function uploadMenuImage(restaurantId: string, target: { kind: "logo" | "cover" | "item"; itemId?: string; share?: boolean }, file: File): Promise<MutationResult> {
   const invalid = validateImageFile(file);
   if (invalid) return { error: invalid };
   try {
     const body = new FormData();
     body.set("image", file);
+    if (target.share) body.set(SHARE_PHOTO_FIELD, "on");
     const query = new URLSearchParams({ kind: target.kind, ...(target.itemId ? { itemId: target.itemId } : {}) });
     const response = await fetch(`/api/dashboard/restaurants/${restaurantId}/images?${query}`, { method: "POST", body });
     const result: MutationResult = await response.json();
