@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getSupabasePublicEnv } from "@/lib/env/public";
 import { getSupabaseSecretKey } from "@/lib/env/server";
 
-// Bypasses RLS. Only call after requireSuperAdmin(), and only for Auth admin operations.
+// Bypasses RLS. Only call after requireSuperAdmin() or from trusted server code (rate limiting, cron jobs, public report intake).
 export function createServiceClient() {
   return createClient(getSupabasePublicEnv().url, getSupabaseSecretKey(), {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },

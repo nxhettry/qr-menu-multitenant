@@ -9,7 +9,8 @@ import { getSiteOrigin } from "@/lib/env/server";
 import { authErrorMessage } from "@/lib/auth/errors";
 import { CAPTCHA_FAILED_MESSAGE, captchaOptions, isCaptchaError } from "@/lib/auth/captcha";
 import { assertSuperAdmin } from "@/lib/admin/session";
-import { getAdminUser, logAdminUserAction, setRestaurantSuspended, type AdminUserAction } from "@/lib/admin/repository";
+import { checkRateLimit, checkRateLimitByIp, RATE_LIMITED_MESSAGE } from "@/lib/rate-limit";
+import { getAdminUser, logAdminUserAction, resolveAbuseReport, setRestaurantSuspended, type AdminUserAction } from "@/lib/admin/repository";
 import { newPasswordSchema, type AdminActionState } from "@/lib/admin/schemas";
 import { invalidateMenu } from "@/lib/editor/invalidation";
 import { candidateResolution, dishInput } from "@/lib/dishes/schemas";
@@ -18,10 +19,16 @@ import { DISH_CATALOG_TAG, mergeAdminDishes, resolveDishCandidate, saveAdminDish
 const notPermitted: AdminActionState = { error: "Your admin session has ended. Sign in again." };
 const BAN_DURATION = "876000h";
 
+async function assertAdminWithinLimit() {
+  const admin = await assertSuperAdmin();
+  return (await checkRateLimit("adminAction", admin.id)).allowed ? admin : null;
+}
+
 export async function adminLogin(_state: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.extend({ password: z.string().min(1).max(128) })
     .safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
   if (!input.success) return { error: "Enter your email and password." };
+  if (!(await checkRateLimitByIp("signIn")).allowed) return { error: RATE_LIMITED_MESSAGE };
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ ...input.data, options: captchaOptions(form) });
   if (error && isCaptchaError(error)) return { error: CAPTCHA_FAILED_MESSAGE };
@@ -42,7 +49,7 @@ export async function setRestaurantSuspendedAction(restaurantId: string, suspend
   if (!z.uuid().safeParse(restaurantId).success) return { error: "Restaurant not found." };
   let slug;
   try {
-    await assertSuperAdmin();
+    if (!await assertAdminWithinLimit()) return { error: RATE_LIMITED_MESSAGE };
     slug = await setRestaurantSuspended(restaurantId, suspended);
   } catch { return { error: "Could not update the restaurant. Please try again." }; }
   try { invalidateMenu(restaurantId, { slug, previousSlug: slug }); }
@@ -61,8 +68,10 @@ async function managedUser(userId: string) {
 
 async function runUserAction(userId: string, action: AdminUserAction, run: (user: NonNullable<Awaited<ReturnType<typeof managedUser>>>) => Promise<string | undefined>, message: string): Promise<AdminActionState> {
   let user;
-  try { user = await managedUser(userId); }
-  catch { return notPermitted; }
+  try {
+    if (!await assertAdminWithinLimit()) return { error: RATE_LIMITED_MESSAGE };
+    user = await managedUser(userId);
+  } catch { return notPermitted; }
   if (!user) return { error: "This account can’t be changed from the admin portal." };
   try {
     const error = await run(user);
@@ -119,10 +128,19 @@ export async function changeOwnPasswordAction(_state: AdminActionState, form: Fo
   return { message: "Your password has been updated." };
 }
 
+export async function resolveAbuseReportAction(reportId: string, status: "OPEN" | "RESOLVED" | "DISMISSED"): Promise<AdminActionState> {
+  if (!z.uuid().safeParse(reportId).success) return { error: "Report not found." };
+  try {
+    if (!await assertAdminWithinLimit()) return { error: RATE_LIMITED_MESSAGE };
+    await resolveAbuseReport(reportId, status);
+  } catch { return { error: "Could not update the report. Please try again." }; }
+  return { message: status === "OPEN" ? "Report reopened." : status === "RESOLVED" ? "Report resolved." : "Report dismissed." };
+}
+
 const dishFailure: AdminActionState = { error: "Could not update the dish catalog. Please try again." };
 
 async function runDishAction(run: () => Promise<string>): Promise<AdminActionState> {
-  try { await assertSuperAdmin(); }
+  try { if (!await assertAdminWithinLimit()) return { error: RATE_LIMITED_MESSAGE }; }
   catch { return notPermitted; }
   let message: string;
   try { message = await run(); }

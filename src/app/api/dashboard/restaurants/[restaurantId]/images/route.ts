@@ -4,6 +4,7 @@ import { executeMenuMutation, MenuEditError } from "@/lib/editor/repository";
 import { invalidateMenu } from "@/lib/editor/invalidation";
 import { MAX_MULTIPART_BYTES, prepareImage } from "@/lib/cloudinary/prepare-image";
 import { discardMenuImage, uploadMenuImage } from "@/lib/cloudinary/upload";
+import { checkRateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0" };
 const targetSchema = z.object({ kind: z.enum(["logo", "cover", "item"]), item_id: z.uuid().optional() });
@@ -40,6 +41,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ res
       sameOrigin = parsed.origin === origin && ["https:", "http:"].includes(parsed.protocol) && parsed.host === request.headers.get("host");
     } catch { sameOrigin = false; }
     if (!sameOrigin) return Response.json({ error: "Reload this page before uploading." }, { status: 403, headers });
+    const limit = await checkRateLimit("imageUpload", context.userId);
+    if (!limit.allowed) return rateLimitedResponse(limit.retryAfter, headers);
     const url = new URL(request.url);
     const target = targetSchema.safeParse({ kind: url.searchParams.get("kind"), item_id: url.searchParams.get("itemId") ?? undefined });
     if (!target.success || (target.data.kind === "item" && !target.data.item_id)) return Response.json({ error: "Choose an image target." }, { status: 400, headers });

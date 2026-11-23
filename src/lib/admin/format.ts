@@ -15,6 +15,11 @@ const actionLabels: Record<string, string> = {
   "admin.user.banned": "Sign-in disabled by admin",
   "admin.user.unbanned": "Sign-in enabled by admin",
   "admin.user.reset_sent": "Reset email sent by admin",
+  "admin.abuse_report.resolved": "Abuse report resolved",
+  "admin.abuse_report.dismissed": "Abuse report dismissed",
+  "admin.abuse_report.open": "Abuse report reopened",
+  "account.deletion_requested": "Account deletion requested",
+  "account.deletion_cancelled": "Account deletion cancelled",
   "menu.importItems": "Menu items imported",
 };
 

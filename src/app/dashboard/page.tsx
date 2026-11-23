@@ -2,11 +2,12 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/session";
 import { listRestaurantsForUser } from "@/lib/tenancy/restaurants";
+import { getAccountDeletion } from "@/lib/account/repository";
 import { SWRProvider } from "@/components/swr-provider";
 import { RestaurantsList } from "@/components/restaurants-list";
 import { AppHeader, PageTitle } from "@/components/ui/brand";
 import { StatusScreen } from "@/components/ui/status-screen";
-import { primaryClass } from "@/components/ui/form";
+import { noticeClass, primaryClass } from "@/components/ui/form";
 import { logout } from "@/app/auth/actions";
 import { SignOutForm } from "@/components/ui/submit-button";
 import { DashboardSkeleton } from "@/components/ui/page-skeletons";
@@ -15,16 +16,18 @@ import { privateMetadata } from "@/lib/seo/site";
 export const metadata = privateMetadata("Your restaurants — QR Menu");
 
 const signOut = <SignOutForm action={logout} />;
+const accountLink = <Link href="/dashboard/account" className="rounded-full px-3 py-2 font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink">Account</Link>;
 
 async function DashboardContent() {
   const user = await requireUser();
-  let restaurants;
-  try { restaurants = await listRestaurantsForUser(user.id); }
+  let restaurants, deletion;
+  try { [restaurants, deletion] = await Promise.all([listRestaurantsForUser(user.id), getAccountDeletion(user.id)]); }
   catch {
     return <StatusScreen title="Your dashboard is taking a moment." body="We couldn’t load your restaurants. Please try again shortly." action={<div className="flex items-center gap-3"><Link href="/dashboard" className={primaryClass}>Try again</Link>{signOut}</div>} />;
   }
   return <main className="mx-auto w-full max-w-5xl px-4 pb-16 sm:px-6">
-    <AppHeader>{signOut}</AppHeader>
+    <AppHeader>{accountLink}{signOut}</AppHeader>
+    {deletion && <p role="status" className={`${noticeClass("warning")} mt-5`}>Your account is scheduled for deletion. <Link href="/dashboard/account" className="font-semibold underline underline-offset-4">Review or cancel</Link></p>}
     <div className="mt-10 flex flex-wrap items-end justify-between gap-5">
       <PageTitle eyebrow="Your workspace" title="Your restaurants."><p className="text-sm">Signed in as {user.email}</p></PageTitle>
       <Link href="/onboarding" className={primaryClass}>Add a restaurant →</Link>

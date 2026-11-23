@@ -3,8 +3,8 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
   ADMIN_EVENTS_LIMIT, ADMIN_PAGE_SIZE, adminEventSchema, adminOverviewSchema, adminRestaurantDetailSchema,
-  adminRestaurantRowSchema, adminUserDetailSchema, adminUserRowSchema, pageOf,
-  type EventListQuery, type RestaurantListQuery, type UserListQuery,
+  abuseReportRowSchema, adminRestaurantRowSchema, adminUserDetailSchema, adminUserRowSchema, pageOf,
+  type AbuseReportListQuery, type EventListQuery, type RestaurantListQuery, type UserListQuery,
 } from "./schemas";
 
 export async function callAdmin<T extends z.ZodType>(fn: string, args: Record<string, unknown>, schema: T): Promise<z.infer<T>> {
@@ -23,6 +23,12 @@ export const listAdminUsers = ({ q, page }: UserListQuery) =>
 
 export const listAdminRestaurants = ({ q, page, status }: RestaurantListQuery) =>
   callAdmin("admin_list_restaurants", { p_search: q || null, p_status: status ?? null, p_page: page, p_page_size: ADMIN_PAGE_SIZE }, pageOf(adminRestaurantRowSchema));
+
+export const listAbuseReports = ({ page, status }: AbuseReportListQuery) =>
+  callAdmin("admin_list_abuse_reports", { p_status: status === "ALL" ? null : status, p_page: page, p_page_size: ADMIN_PAGE_SIZE }, pageOf(abuseReportRowSchema));
+
+export const resolveAbuseReport = (id: string, status: "OPEN" | "RESOLVED" | "DISMISSED") =>
+  callAdmin("admin_resolve_abuse_report", { p_id: id, p_status: status }, z.null());
 
 export const getAdminUser = (userId: string) =>
   callAdmin("admin_get_user", { p_user_id: userId }, adminUserDetailSchema.nullable());

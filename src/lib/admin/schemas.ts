@@ -71,5 +71,14 @@ export type UserListQuery = z.infer<typeof userListQuery>;
 export type RestaurantListQuery = z.infer<typeof restaurantListQuery>;
 export type EventListQuery = z.infer<typeof eventListQuery>;
 
+export const abuseReportRowSchema = z.object({
+  id: z.uuid(), restaurantId: z.uuid(), restaurantName: z.string(), restaurantSlug: z.string(),
+  reason: z.string(), details: z.string(), contact: z.string().nullable(),
+  status: z.enum(["OPEN", "RESOLVED", "DISMISSED"]), createdAt: timestamp, resolvedAt: nullableTimestamp,
+});
+export type AbuseReportRow = z.infer<typeof abuseReportRowSchema>;
+export const abuseReportListQuery = z.object({ page, status: z.enum(["OPEN", "RESOLVED", "DISMISSED", "ALL"]).catch("OPEN") });
+export type AbuseReportListQuery = z.infer<typeof abuseReportListQuery>;
+
 export const newPasswordSchema = z.string().min(8, "Use at least 8 characters").max(128);
 export type AdminActionState = { error?: string; message?: string };

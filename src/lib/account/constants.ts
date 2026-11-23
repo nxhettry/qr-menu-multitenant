@@ -1,0 +1,2 @@
+export const DELETION_GRACE_DAYS = 14;
+export const DELETION_CONFIRMATION = "DELETE";

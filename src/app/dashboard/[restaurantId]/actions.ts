@@ -3,6 +3,7 @@ import { getTenantContext, TenantAccessError } from "@/lib/tenancy/context";
 import { editorMutation, vatModeInput, type MutationResult } from "@/lib/editor/schemas";
 import { changeVatMode, executeMenuMutation, MenuEditError, requiresManagement } from "@/lib/editor/repository";
 import { invalidateMenu } from "@/lib/editor/invalidation";
+import { checkRateLimit, RATE_LIMITED_MESSAGE } from "@/lib/rate-limit";
 
 type Receipt = Awaited<ReturnType<typeof executeMenuMutation>>;
 
@@ -30,6 +31,8 @@ export async function mutateEditorAction(restaurantId: string, input: unknown): 
     const context = await getTenantContext(restaurantId);
     const parsed = editorMutation.safeParse(input);
     if (!parsed.success) return { error: parsed.error.issues[0].message };
+    const policy = parsed.data.operation === "importItems" ? "menuImport" : "menuMutation";
+    if (!(await checkRateLimit(policy, context.userId)).allowed) return { error: RATE_LIMITED_MESSAGE };
     return executeMenuMutation(context, parsed.data.operation, parsed.data.payload, requiresManagement(parsed.data));
   });
 }

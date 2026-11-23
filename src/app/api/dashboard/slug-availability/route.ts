@@ -1,11 +1,15 @@
 import { getVerifiedUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isRestaurantSlug } from "@/lib/menu/slugs";
+import { checkRateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0" };
 
 export async function GET(request: Request) {
-  if (!await getVerifiedUser()) return Response.json({ error: "Sign in required" }, { status: 401, headers });
+  const user = await getVerifiedUser();
+  if (!user) return Response.json({ error: "Sign in required" }, { status: 401, headers });
+  const limit = await checkRateLimit("slugCheck", user.id);
+  if (!limit.allowed) return rateLimitedResponse(limit.retryAfter, headers);
   const slug = new URL(request.url).searchParams.get("slug") ?? "";
   if (!isRestaurantSlug(slug)) return Response.json({ available: false }, { headers });
   const supabase = await createClient();

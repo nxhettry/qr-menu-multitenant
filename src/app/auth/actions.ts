@@ -8,10 +8,12 @@ import { getSiteOrigin } from "@/lib/env/server";
 import { authErrorMessage } from "@/lib/auth/errors";
 import { CAPTCHA_FAILED_MESSAGE, captchaOptions, isCaptchaError } from "@/lib/auth/captcha";
 import { TERMS_VERSION } from "@/lib/legal";
+import { checkRateLimitByIp, RATE_LIMITED_MESSAGE } from "@/lib/rate-limit";
 export async function login(_state: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.extend({ password: z.string().min(1).max(128) })
     .safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
   if (!input.success) return { error: "Enter your email and password." };
+  if (!(await checkRateLimitByIp("signIn")).allowed) return { error: RATE_LIMITED_MESSAGE };
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ ...input.data, options: captchaOptions(form) });
   if (error) return { error: isCaptchaError(error) ? CAPTCHA_FAILED_MESSAGE : "Could not sign in. Check your details and verify your email." };
@@ -22,6 +24,7 @@ export async function register(_state: FormState, form: FormData): Promise<FormS
   const input = credentialsSchema.safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
   if (!input.success) return { error: "Enter a valid email and a password of 8–128 characters." };
   if (form.get("acceptTerms") !== "on") return { error: "Please accept the Terms of Service and Privacy Policy to continue." };
+  if (!(await checkRateLimitByIp("signUp")).allowed) return { error: RATE_LIMITED_MESSAGE };
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ ...input.data,
     options: { ...captchaOptions(form), emailRedirectTo: `${getSiteOrigin()}/auth/callback?next=/onboarding`, data: { terms_version: TERMS_VERSION } },
@@ -33,6 +36,7 @@ export async function register(_state: FormState, form: FormData): Promise<FormS
 export async function requestPasswordReset(_state: FormState, form: FormData): Promise<FormState> {
   const email = z.email().max(254).safeParse(String(form.get("email") ?? "").trim());
   if (!email.success) return { error: "Enter a valid email address." };
+  if (!(await checkRateLimitByIp("passwordReset")).allowed) return { error: RATE_LIMITED_MESSAGE };
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email.data, {
     redirectTo: `${getSiteOrigin()}/auth/callback?next=/reset-password`,

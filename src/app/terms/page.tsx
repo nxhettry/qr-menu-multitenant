@@ -44,7 +44,7 @@ const sections: LegalSection[] = [
       <li>overload, scrape, reverse engineer or resell the service.</li>
     </ul>
   </> },
-  { title: "Suspension and termination", body: <p>We may remove content, suspend a menu or disable an account that breaks these Terms, puts others at risk, or where required by law. Where reasonable we will tell you why. You can stop using the service at any time and ask us to delete your account by emailing {mail}.</p> },
+  { title: "Suspension and termination", body: <p>We may remove content, suspend a menu or disable an account that breaks these Terms, puts others at risk, or where required by law. Where reasonable we will tell you why. You can stop using the service at any time and delete your account from your dashboard (Account) or by emailing {mail}. Anyone can report a menu using the “Report this menu” link on it.</p> },
   { title: "Disclaimers and liability", body: <>
     <p>To the extent permitted by law, we make no warranties about the service, and we are not liable for indirect or consequential losses, lost profits or revenue, lost data, or for errors in menu content provided by restaurants.</p>
     <p>Because the service is free, our total liability to you for any claim is limited to NPR 5,000.</p>

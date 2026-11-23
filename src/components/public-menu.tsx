@@ -52,7 +52,8 @@ export function PublicMenu({ menu, isDemo = false }: { menu: PublishedMenu; isDe
       </div>
     </footer>
     <div className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-ink-subtle">
-      <Link href="/" className="font-medium transition-colors hover:text-ink">Free menu by QR Menu</Link><span aria-hidden="true">·</span><PoweredBy />
+      <Link href="/" className="font-medium transition-colors hover:text-ink">Free menu by QR Menu</Link><span aria-hidden="true">·</span><PoweredBy /><span aria-hidden="true">·</span>
+      <Link href={`/${menu.slug}/report`} className="transition-colors hover:text-ink">Report this menu</Link>
     </div>
   </main>;
 }

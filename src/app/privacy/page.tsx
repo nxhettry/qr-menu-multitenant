@@ -31,11 +31,11 @@ const sections: LegalSection[] = [
     </ul>
     <p>Restaurant and menu information is public and may be seen, copied or indexed by anyone.</p>
   </> },
-  { title: "How long we keep it", body: <p>We keep account and restaurant information while your account is active. When you ask us to delete your account, we delete or de-identify your personal information within a reasonable time. We may keep limited records, backups and aggregated data where needed for security, legal or legitimate business purposes.</p> },
+  { title: "How long we keep it", body: <p>We keep account and restaurant information while your account is active. You can delete your account from your dashboard (Account). Your restaurants are hidden immediately and, after a 14-day period in which you can cancel, your account, restaurants, menus and photos are permanently deleted. We may keep limited records, backups and aggregated data where needed for security, legal or legitimate business purposes.</p> },
   { title: "Security", body: <p>We use access controls, encryption in transit, and per-restaurant isolation in our database to protect information. No online service is perfectly secure, so please use a strong, unique password.</p> },
   { title: "Your choices and rights", body: <ul>
     <li>Edit your restaurant and menu information in your dashboard at any time.</li>
-    <li>Ask us for a copy of your account information, or ask us to correct or delete it.</li>
+    <li>Download a copy of your account information from your dashboard (Account), or ask us to correct or delete it.</li>
     <li>Opt out of promotional emails or showcase use.</li>
   </ul> },
   { title: "Children", body: <p>QR Menu is for businesses and is not directed at children under 18. We do not knowingly collect their personal information.</p> },
