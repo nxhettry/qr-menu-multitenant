@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     menu: { stale: 300, revalidate: 86400, expire: 604800 },
   },
   partialPrefetching: true,
+  experimental: {
+    agentUpgrade: "security",
+  },
   reactCompiler: true,
   turbopack: {
     rules: {
