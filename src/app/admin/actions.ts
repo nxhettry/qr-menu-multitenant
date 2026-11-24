@@ -10,8 +10,8 @@ import { authErrorMessage } from "@/lib/auth/errors";
 import { CAPTCHA_FAILED_MESSAGE, captchaOptions, isCaptchaError } from "@/lib/auth/captcha";
 import { assertSuperAdmin } from "@/lib/admin/session";
 import { checkRateLimit, checkRateLimitByIp, RATE_LIMITED_MESSAGE } from "@/lib/rate-limit";
-import { getAdminUser, logAdminUserAction, resolveAbuseReport, reviewPhoto, setUploadLimit, setRestaurantSuspended, type AdminUserAction } from "@/lib/admin/repository";
-import { newPasswordSchema, type AdminActionState } from "@/lib/admin/schemas";
+import { getAdminUser, logAdminUserAction, resolveAbuseReport, reviewPhoto, setDefaultUploadLimit, setUserUploadLimit, setRestaurantSuspended, type AdminUserAction } from "@/lib/admin/repository";
+import { newPasswordSchema, UPLOAD_LIMIT_MAX, uploadLimitInput, type AdminActionState } from "@/lib/admin/schemas";
 import { invalidateMenu } from "@/lib/editor/invalidation";
 import { candidateResolution, dishInput } from "@/lib/dishes/schemas";
 import { DISH_CATALOG_TAG, mergeAdminDishes, resolveDishCandidate, saveAdminDish } from "@/lib/dishes/repository";
@@ -147,15 +147,29 @@ export async function reviewPhotoAction(assetId: string, decision: "APPROVE" | "
   return { message: decision === "APPROVE" ? "Photo approved." : "Photo rejected." };
 }
 
-export async function setUploadLimitAction(restaurantId: string, limit: number | null): Promise<AdminActionState> {
-  const parsed = z.object({ id: z.uuid(), limit: z.number().int().min(1).max(500).nullable() }).safeParse({ id: restaurantId, limit });
-  if (!parsed.success) return { error: "Enter a limit between 1 and 500." };
+const invalidUploadLimit: AdminActionState = { error: `Enter a limit between 1 and ${UPLOAD_LIMIT_MAX}.` };
+const uploadLimitFailure: AdminActionState = { error: "Could not update the upload limit. Please try again." };
+
+export async function setDefaultUploadLimitAction(limit: number): Promise<AdminActionState> {
+  const parsed = uploadLimitInput.safeParse(limit);
+  if (!parsed.success) return invalidUploadLimit;
   try {
     if (!await assertAdminWithinLimit()) return { error: RATE_LIMITED_MESSAGE };
-    await setUploadLimit(parsed.data.id, parsed.data.limit);
-  } catch { return { error: "Could not update the upload limit. Please try again." }; }
+    await setDefaultUploadLimit(parsed.data);
+  } catch { return uploadLimitFailure; }
   refresh();
-  return { message: parsed.data.limit === null ? "Upload limit reset to the default." : `Upload limit set to ${parsed.data.limit} per day.` };
+  return { message: `Default set to ${parsed.data} uploads per week.` };
+}
+
+export async function setUserUploadLimitAction(userId: string, limit: number | null): Promise<AdminActionState> {
+  const parsed = z.object({ id: z.uuid(), limit: uploadLimitInput.nullable() }).safeParse({ id: userId, limit });
+  if (!parsed.success) return invalidUploadLimit;
+  try {
+    if (!await assertAdminWithinLimit()) return { error: RATE_LIMITED_MESSAGE };
+    await setUserUploadLimit(parsed.data.id, parsed.data.limit);
+  } catch { return uploadLimitFailure; }
+  refresh();
+  return { message: parsed.data.limit === null ? "This user now uses the default limit." : `Limit set to ${parsed.data.limit} uploads per week.` };
 }
 
 const dishFailure: AdminActionState = { error: "Could not update the dish catalog. Please try again." };

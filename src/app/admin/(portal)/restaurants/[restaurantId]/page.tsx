@@ -3,14 +3,14 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { z } from "zod";
 import { requireSuperAdmin } from "@/lib/admin/session";
-import { getAdminRestaurant, getUploadLimit, listAdminEvents } from "@/lib/admin/repository";
+import { getAdminRestaurant, listAdminEvents } from "@/lib/admin/repository";
 import { formatCount, formatDateTime } from "@/lib/admin/format";
 import { menuQrUrl } from "@/lib/menu/qr";
 import { getSiteOrigin } from "@/lib/env/server";
 import { AdminPage } from "@/components/admin/admin-page";
 import { DetailCard, DetailList, StatCard } from "@/components/admin/detail";
 import { EventList } from "@/components/admin/event-list";
-import { RestaurantStatusAction, UploadLimitAction } from "@/components/admin/restaurant-actions";
+import { RestaurantStatusAction } from "@/components/admin/restaurant-actions";
 import { PageTitle } from "@/components/ui/brand";
 import { darkClass, linkClass, secondaryClass } from "@/components/ui/form";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -22,7 +22,7 @@ async function RestaurantDetail({ params }: Props) {
   await requireSuperAdmin();
   const { restaurantId } = await params;
   if (!z.uuid().safeParse(restaurantId).success) notFound();
-  const [restaurant, events, uploadLimit] = await Promise.all([getAdminRestaurant(restaurantId), listAdminEvents({ restaurantId }), getUploadLimit(restaurantId)]);
+  const [restaurant, events] = await Promise.all([getAdminRestaurant(restaurantId), listAdminEvents({ restaurantId })]);
   if (!restaurant) notFound();
   const { scans } = restaurant;
   return <>
@@ -56,7 +56,6 @@ async function RestaurantDetail({ params }: Props) {
           <p className="mb-4 text-sm leading-6 text-ink-muted">{restaurant.status === "SUSPENDED" ? "The public menu is offline and the owner can’t edit. Restoring returns it to its previous state." : "Suspending takes the public menu offline and locks owner editing. You can still edit it here."}</p>
           <RestaurantStatusAction restaurantId={restaurant.id} suspended={restaurant.status === "SUSPENDED"} />
         </DetailCard>
-        <DetailCard title="Photo uploads"><UploadLimitAction restaurantId={restaurant.id} current={uploadLimit} /></DetailCard>
         <DetailCard title="Team">
           <ul className="space-y-2 text-sm">{restaurant.members.map(member => <li key={member.userId} className="flex items-center justify-between gap-3">
             <Link href={`/admin/users/${member.userId}`} className="truncate font-medium text-brand hover:underline">{member.email ?? member.userId}</Link>

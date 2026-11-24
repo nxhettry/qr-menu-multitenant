@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
   ADMIN_EVENTS_LIMIT, ADMIN_PAGE_SIZE, adminEventSchema, adminOverviewSchema, adminRestaurantDetailSchema,
-  abuseReportRowSchema, curatedPhotoResultSchema, dishPhotoSchema, photoReviewRowSchema, uploadLimitSchema, adminRestaurantRowSchema, adminUserDetailSchema, adminUserRowSchema, pageOf,
+  abuseReportRowSchema, curatedPhotoResultSchema, dishPhotoSchema, photoReviewRowSchema, uploadSettingsSchema, userUploadLimitSchema, adminRestaurantRowSchema, adminUserDetailSchema, adminUserRowSchema, pageOf,
   type AbuseReportListQuery, type PhotoReviewListQuery, type EventListQuery, type RestaurantListQuery, type UserListQuery,
 } from "./schemas";
 
@@ -43,11 +43,16 @@ export const reviewPhoto = (id: string, decision: "APPROVE" | "REJECT", dishId: 
 export const resolveAbuseReport = (id: string, status: "OPEN" | "RESOLVED" | "DISMISSED") =>
   callAdmin("admin_resolve_abuse_report", { p_id: id, p_status: status }, z.null());
 
-export const getUploadLimit = (restaurantId: string) =>
-  callAdmin("admin_get_upload_limit", { p_restaurant_id: restaurantId }, uploadLimitSchema);
+export const getUploadSettings = () => callAdmin("admin_get_upload_settings", {}, uploadSettingsSchema);
 
-export const setUploadLimit = (restaurantId: string, limit: number | null) =>
-  callAdmin("admin_set_upload_limit", { p_restaurant_id: restaurantId, p_limit: limit }, z.null());
+export const setDefaultUploadLimit = (limit: number) =>
+  callAdmin("admin_set_default_upload_limit", { p_limit: limit }, z.null());
+
+export const getUserUploadLimit = (userId: string) =>
+  callAdmin("admin_get_user_upload_limit", { p_user_id: userId }, userUploadLimitSchema.nullable());
+
+export const setUserUploadLimit = (userId: string, limit: number | null) =>
+  callAdmin("admin_set_user_upload_limit", { p_user_id: userId, p_limit: limit }, z.null());
 
 export const getAdminUser = (userId: string) =>
   callAdmin("admin_get_user", { p_user_id: userId }, adminUserDetailSchema.nullable());

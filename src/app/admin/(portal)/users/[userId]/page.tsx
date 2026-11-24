@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { z } from "zod";
 import { requireSuperAdmin } from "@/lib/admin/session";
-import { getAdminUser } from "@/lib/admin/repository";
+import { getAdminUser, getUserUploadLimit } from "@/lib/admin/repository";
 import { formatDateTime, isBanned } from "@/lib/admin/format";
 import { AdminPage } from "@/components/admin/admin-page";
 import { DetailCard, DetailList } from "@/components/admin/detail";
 import { UserActions } from "@/components/admin/user-actions";
+import { UserUploadLimitAction } from "@/components/admin/upload-limit-actions";
 import { PageTitle } from "@/components/ui/brand";
 import { linkClass } from "@/components/ui/form";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -19,8 +20,8 @@ async function UserDetail({ params }: Props) {
   const admin = await requireSuperAdmin();
   const { userId } = await params;
   if (!z.uuid().safeParse(userId).success) notFound();
-  const user = await getAdminUser(userId);
-  if (!user) notFound();
+  const [user, uploadLimit] = await Promise.all([getAdminUser(userId), getUserUploadLimit(userId)]);
+  if (!user || !uploadLimit) notFound();
   const banned = isBanned(user.bannedUntil);
   const manageable = !user.isSuperAdmin && user.id !== admin.id;
   return <>
@@ -42,6 +43,10 @@ async function UserDetail({ params }: Props) {
       <DetailCard title="Manage access">
         {manageable ? <UserActions userId={user.id} banned={banned} />
           : <p className="text-sm leading-6 text-ink-muted">Admin accounts can’t be changed here. Use the Account page to change your own password.</p>}
+      </DetailCard>
+      <DetailCard title="Photo uploads">
+        {user.isSuperAdmin ? <p className="text-sm leading-6 text-ink-muted">Admin accounts have no upload limit.</p>
+          : <UserUploadLimitAction userId={user.id} current={uploadLimit} />}
       </DetailCard>
       <div className="lg:col-span-2">
         <DetailCard title={`Restaurants (${user.restaurants.length})`}>

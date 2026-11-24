@@ -44,19 +44,41 @@ test("media library: quotas, dedupe, sharing and cleanup protection", async t =>
     return reserved;
   }
 
-  await t.test("upload quota is 50 for new restaurants, 15 afterwards, and adjustable by admins", async () => {
-    assert.equal(await scalar("select private.upload_limit($1)", [a]), 50);
-    await db.query("update public.restaurants set created_at = now() - interval '8 days' where id=$1", [a]);
-    assert.equal(await scalar("select private.upload_limit($1)", [a]), 15);
-    for (let i = 0; i < 15; i++) await mutate(ownerA, a, "reserveUpload", { kind: "item", item_id: itemA });
-    await rejects(ownerA, a, "reserveUpload", { kind: "item", item_id: itemA }, /Daily image upload limit/);
-    await asUser(ownerA, () => assert.rejects(db.query("select public.admin_set_upload_limit($1,100)", [a]), error => error.code === "42501"));
-    await asUser(admin, () => db.query("select public.admin_set_upload_limit($1,20)", [a]));
-    assert.deepEqual(await asUser(admin, () => scalar("select public.admin_get_upload_limit($1)", [a])), { limit: 20, overridden: true, usedToday: 15 });
-    await asUser(ownerA, () => assert.rejects(db.query("select public.admin_get_upload_limit($1)", [a]), error => error.code === "42501"));
-    await mutate(ownerA, a, "reserveUpload", { kind: "item", item_id: itemA });
-    await asUser(admin, () => db.query("select public.admin_set_upload_limit($1,null)", [a]));
-    assert.equal(await scalar("select private.upload_limit($1)", [a]), 15);
+  await t.test("upload quota is per user per rolling week, with an admin default and per-user overrides", async () => {
+    const reserve = (user, restaurant, itemId) => mutate(user, restaurant, "reserveUpload", { kind: "item", item_id: itemId });
+    const limitOf = user => asUser(admin, () => scalar("select public.admin_get_user_upload_limit($1)", [user]));
+    await db.query("insert into public.memberships values($1,$2,'OWNER')", [ownerA, b]);
+    assert.equal(await scalar("select private.weekly_upload_limit($1)", [ownerA]), 50);
+    for (let i = 0; i < 25; i++) await reserve(ownerA, a, itemA);
+    for (let i = 0; i < 25; i++) await reserve(ownerA, b, itemB);
+    await rejects(ownerA, b, "reserveUpload", { kind: "item", item_id: itemB }, /Weekly photo upload limit/);
+    await rejects(ownerA, a, "reserveUpload", { kind: "logo" }, /Weekly photo upload limit/);
+    await reserve(editorA, a, itemA);
+    await reserve(admin, a, itemA);
+
+    await db.query("update private.menu_uploads set created_at = now() - interval '8 days' where actor_id=$1 and kind='item' and restaurant_id=$2", [ownerA, b]);
+    await reserve(ownerA, a, itemA);
+    await db.query("update private.menu_uploads set created_at = now() where actor_id=$1", [ownerA]);
+
+    await asUser(ownerA, () => assert.rejects(db.query("select public.admin_set_user_upload_limit($1,100)", [ownerA]), error => error.code === "42501"));
+    await asUser(ownerA, () => assert.rejects(db.query("select public.admin_set_default_upload_limit(100)"), error => error.code === "42501"));
+    await asUser(ownerA, () => assert.rejects(db.query("select public.admin_get_user_upload_limit($1)", [ownerA]), error => error.code === "42501"));
+    await asUser(admin, () => db.query("select public.admin_set_user_upload_limit($1,60)", [ownerA]));
+    assert.deepEqual(await limitOf(ownerA), { limit: 60, defaultLimit: 50, overridden: true, usedThisWeek: 51 });
+    await reserve(ownerA, a, itemA);
+
+    await asUser(admin, () => db.query("select public.admin_set_user_upload_limit($1,null)", [ownerA]));
+    await asUser(admin, () => db.query("select public.admin_set_default_upload_limit(52)"));
+    assert.deepEqual(await asUser(admin, () => scalar("select public.admin_get_upload_settings()")), { weeklyLimit: 52 });
+    assert.deepEqual(await limitOf(ownerA), { limit: 52, defaultLimit: 52, overridden: false, usedThisWeek: 52 });
+    await rejects(ownerA, a, "reserveUpload", { kind: "item", item_id: itemA }, /Weekly photo upload limit/);
+    await asUser(admin, () => assert.rejects(db.query("select public.admin_set_default_upload_limit(0)"), error => error.code === "23514"));
+    assert.equal(await limitOf(randomUUID()), null);
+    assert.equal(await scalar("select count(*)::int from public.audit_events where action like 'admin.upload_limit.%'"), 3);
+
+    await asUser(admin, () => db.query("select public.admin_set_default_upload_limit(50)"));
+    await db.query("delete from public.memberships where user_id=$1 and restaurant_id=$2", [ownerA, b]);
+    await db.query("delete from private.menu_uploads where restaurant_id=$1", [b]);
     await db.query("delete from private.menu_uploads where restaurant_id=$1", [a]);
   });
 

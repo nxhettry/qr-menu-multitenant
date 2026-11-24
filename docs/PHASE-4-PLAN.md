@@ -37,7 +37,7 @@ Drafted 29 October 2026. Cross-cutting cache profile, 4A and 4B are implemented,
 - **Dedupe.** The upload route hashes the processed image, and `find_reusable_asset` returns the restaurant's own or a public asset with the same hash; the item then points at it (`useAsset`, no Cloudinary upload, no quota use).
 - **Picker.** "Choose from library" in the item photo dialog and item form lists public photos for the item's dish and the restaurant's own uploads (`list_photo_options`, `/api/dashboard/restaurants/<id>/photos`). It is not offered while creating a new item, because the dish is only known after saving.
 - **Sharing.** Owners and managers can opt a photo in (`PRIVATE` to `PENDING`) and withdraw it. `PENDING` is not visible to anyone else.
-- **Quota** (D4): 15 uploads per rolling 24 hours, 50 in a restaurant's first 7 days, with a per-restaurant override on the admin restaurant page.
+- **Quota** (D4, revised 24 Nov 2026): 50 uploads per **user account** per rolling 7 days, counted across all of that user's restaurants (logo, cover and item photos; picking a library photo or a dedupe hit never counts). Super-admins set the default on `/admin/photos` and a per-user override on the user's admin page; both are audited. Super-admins themselves are not limited. Reservations for one user are serialised with an advisory lock so parallel requests can't overshoot.
 - **Cleanup and deletion.** The Phase 5 cleanup keeps any file an item (in any restaurant) still shows and anything `PENDING`/`PUBLIC`. Deleting an account removes its private assets and files but keeps `PUBLIC` ones (the owner becomes null).
 - **Approval queue.** Migration `202611230003_photo_review.sql` (**not applied**), tested in `scripts/test-photo-review.mjs`. `/admin/photos` lists Waiting/Approved/Rejected photos with a preview; approving needs a dish (the item's dish, or one the admin picks), and any decision can be reversed. Approved photos appear in other restaurants' pickers.
 - **Curated upload.** Migration `202611230004_curated_photos.sql` (**not applied**). The admin dish dialog has a "Library photos" section: add a photo (stored under `library/<dishId>/…`, public at once, duplicates by hash are skipped) and remove one (curated or shared). Route `/api/admin/dishes/<id>/photos`; shared upload checks moved to `src/lib/http/image-request.ts`.
@@ -186,6 +186,6 @@ Confirmed 29 October 2026.
 | D1 | What guests see in VAT-exclusive mode | Final price: entered price + VAT, rounded to whole rupees, with "Prices include 13% VAT" |
 | D2 | Source of curated images | Provided by the owner while 4A–4B are built; 4C ships the library and admin upload, seeding waits for the images |
 | D3 | Sharing user uploads | Opt-in by the owner, then super-admin approval |
-| D4 | Upload limit per restaurant per rolling 24 h | 15; 50 during a restaurant's first 7 days; super-admin override |
+| D4 | Upload limit | 50 per user account per rolling 7 days (replaced the earlier 15/day per restaurant); admin-set default and per-user override |
 | D5 | Custom names that match no dish | Allowed after a "Did you mean…?" prompt; recorded as candidates |
 | D6 | Existing QR-only menu on first connect | Preview, link matching items by name (keeping photos and Nepali names), hide unmatched items without deleting them |

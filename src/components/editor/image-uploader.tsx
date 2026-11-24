@@ -30,7 +30,7 @@ export function ImageUploader({ restaurantId, kind, itemId, publicId, version, d
   return <section aria-label={`${kind} image`} className={bare ? "space-y-4" : `${cardClass} space-y-4 p-5`}>
     {!bare && <h3 className="font-semibold">{kind === "logo" ? "Restaurant logo" : kind === "cover" ? "Cover image" : "Item photo"}</h3>}
     {imageUrl && <MenuImageDisplay key={imageUrl} src={imageUrl} alt={`Current ${kind}`} width={320} height={240} className="h-24 w-32 rounded-xl object-cover" />}
-    <p className="text-xs leading-5 text-ink-muted">Optional. Still JPEG, PNG, or WebP, up to 3 MB and 20 megapixels. Each restaurant has a daily upload limit. Picking a library photo never uses it.</p>
+    <p className="text-xs leading-5 text-ink-muted">Optional. Still JPEG, PNG, or WebP, up to 3 MB and 20 megapixels. Each account has a weekly upload limit. Picking a library photo never uses it.</p>
     <div className="flex flex-wrap items-center gap-3">
       <FilePickButton label={`Upload ${kind} image`} disabled={busy} className={primaryClass} onFile={file => void upload(file)}>{pending ? "Uploading…" : imageUrl ? "Replace image" : "Upload image"}</FilePickButton>
       {publicId && <button type="button" onClick={onRemove} disabled={busy} className={secondaryClass}>Remove image</button>}

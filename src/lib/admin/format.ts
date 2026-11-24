@@ -21,6 +21,8 @@ const actionLabels: Record<string, string> = {
   "admin.photo.approve": "Shared photo approved",
   "admin.photo.curated": "Library photo added",
   "admin.photo.reject": "Shared photo rejected",
+  "admin.upload_limit.default": "Default photo upload limit changed",
+  "admin.upload_limit.user": "User photo upload limit changed",
   "account.deletion_requested": "Account deletion requested",
   "account.deletion_cancelled": "Account deletion cancelled",
   "menu.importItems": "Menu items imported",

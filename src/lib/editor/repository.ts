@@ -35,7 +35,7 @@ const safeMessages = new Set([
   "Confirm the example prices before saving", "Confirm every example price before publishing",
   "Add an item to a visible category before publishing", "Move or remove the items in this category first",
   "The menu changed. Refresh before reordering", "Category limit reached", "Item limit reached",
-  "Daily image upload limit reached. Try again tomorrow", "Confirm example prices before adding them to a published menu",
+  "Weekly photo upload limit reached. Choose a library photo or try again later", "Confirm example prices before adding them to a published menu",
   "A converted price would exceed the maximum", "Photo not available", "Photo sharing can’t be changed",
 ]);
 

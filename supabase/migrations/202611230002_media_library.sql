@@ -25,47 +25,89 @@ alter table public.menu_items add constraint item_asset_tenant check (
   image_public_id is null or image_asset_id is not null
   or image_public_id ~ ('^qrmenu/' || restaurant_id::text || '/[a-f0-9-]{36}$'));
 
--- Upload quota: 15 per rolling 24 hours, 50 during the first 7 days, with a super-admin override per restaurant.
-create table private.upload_limit_overrides (
-  restaurant_id uuid primary key references public.restaurants(id) on delete cascade,
-  daily_limit integer not null check (daily_limit between 1 and 500)
+-- Upload quota: counted per signed-in user across all their restaurants over a rolling 7 days. Super-admins set the
+-- default and per-user overrides; their own uploads are not limited. Picking a library photo never counts.
+create table private.upload_settings (
+  id boolean primary key default true check (id),
+  weekly_limit integer not null check (weekly_limit between 1 and 1000)
 );
-alter table private.upload_limit_overrides enable row level security;
-revoke all on private.upload_limit_overrides from public, anon, authenticated;
+insert into private.upload_settings(weekly_limit) values(50);
+create table private.user_upload_limits (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  weekly_limit integer not null check (weekly_limit between 1 and 1000)
+);
+alter table private.upload_settings enable row level security;
+alter table private.user_upload_limits enable row level security;
+revoke all on private.upload_settings, private.user_upload_limits from public, anon, authenticated;
+create index menu_uploads_actor_idx on private.menu_uploads(actor_id, created_at);
 
-create function private.upload_limit(p_restaurant_id uuid) returns integer
+create function private.weekly_upload_limit(p_user_id uuid) returns integer
 language sql stable security definer set search_path = '' as $$
-  select coalesce(
-    (select o.daily_limit from private.upload_limit_overrides o where o.restaurant_id = p_restaurant_id),
-    (select case when r.created_at > now() - interval '7 days' then 50 else 15 end from public.restaurants r where r.id = p_restaurant_id),
-    15);
+  select coalesce((select weekly_limit from private.user_upload_limits where user_id = p_user_id),
+    (select weekly_limit from private.upload_settings), 50);
 $$;
-revoke all on function private.upload_limit(uuid) from public, anon, authenticated;
 
-create function public.admin_set_upload_limit(p_restaurant_id uuid, p_limit integer) returns void
+create function private.weekly_uploads_used(p_user_id uuid) returns integer
+language sql stable security definer set search_path = '' as $$
+  select count(*)::integer from private.menu_uploads where actor_id = p_user_id and created_at > now() - interval '7 days';
+$$;
+
+-- The advisory lock serialises one user's reservations across restaurants, so parallel requests can't overshoot.
+create function private.assert_upload_quota() returns void
 language plpgsql security definer set search_path = '' as $$
 begin
-  perform private.assert_super_admin();
-  if not exists (select 1 from public.restaurants where id = p_restaurant_id and deleted_at is null) then
-    raise exception 'Restaurant not found' using errcode = 'P0002';
+  if private.is_super_admin() then return; end if;
+  perform pg_advisory_xact_lock(hashtextextended('upload_quota:' || auth.uid()::text, 0));
+  if private.weekly_uploads_used(auth.uid()) >= private.weekly_upload_limit(auth.uid()) then
+    raise exception 'Weekly photo upload limit reached. Choose a library photo or try again later' using errcode = '23514';
   end if;
-  if p_limit is null then delete from private.upload_limit_overrides where restaurant_id = p_restaurant_id;
-  else
-    insert into private.upload_limit_overrides(restaurant_id, daily_limit) values(p_restaurant_id, p_limit)
-    on conflict (restaurant_id) do update set daily_limit = excluded.daily_limit;
-  end if;
-  insert into public.audit_events(restaurant_id, actor_id, action, metadata)
-  values(p_restaurant_id, auth.uid(), 'admin.upload_limit.set', jsonb_build_object('limit', p_limit));
 end;
 $$;
+revoke all on function private.weekly_upload_limit(uuid), private.weekly_uploads_used(uuid), private.assert_upload_quota()
+  from public, anon, authenticated;
 
-create function public.admin_get_upload_limit(p_restaurant_id uuid) returns jsonb
+create function public.admin_get_upload_settings() returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
 begin
   perform private.assert_super_admin();
-  return jsonb_build_object('limit', private.upload_limit(p_restaurant_id),
-    'overridden', exists (select 1 from private.upload_limit_overrides where restaurant_id = p_restaurant_id),
-    'usedToday', (select count(*) from private.menu_uploads where restaurant_id = p_restaurant_id and created_at > now() - interval '24 hours'));
+  return jsonb_build_object('weeklyLimit', (select weekly_limit from private.upload_settings));
+end;
+$$;
+
+create function public.admin_set_default_upload_limit(p_limit integer) returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  perform private.assert_super_admin();
+  if p_limit is null or p_limit not between 1 and 1000 then raise exception 'Invalid upload limit' using errcode = '23514'; end if;
+  update private.upload_settings set weekly_limit = p_limit;
+  insert into public.audit_events(actor_id, action, metadata) values(auth.uid(), 'admin.upload_limit.default', jsonb_build_object('limit', p_limit));
+end;
+$$;
+
+create function public.admin_get_user_upload_limit(p_user_id uuid) returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  perform private.assert_super_admin();
+  if not exists (select 1 from auth.users where id = p_user_id) then return null; end if;
+  return jsonb_build_object('limit', private.weekly_upload_limit(p_user_id),
+    'defaultLimit', (select weekly_limit from private.upload_settings),
+    'overridden', exists (select 1 from private.user_upload_limits where user_id = p_user_id),
+    'usedThisWeek', private.weekly_uploads_used(p_user_id));
+end;
+$$;
+
+create function public.admin_set_user_upload_limit(p_user_id uuid, p_limit integer) returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  perform private.assert_super_admin();
+  if not exists (select 1 from auth.users where id = p_user_id) then raise exception 'User not found' using errcode = 'P0002'; end if;
+  if p_limit is null then delete from private.user_upload_limits where user_id = p_user_id;
+  else
+    insert into private.user_upload_limits(user_id, weekly_limit) values(p_user_id, p_limit)
+    on conflict (user_id) do update set weekly_limit = excluded.weekly_limit;
+  end if;
+  insert into public.audit_events(actor_id, action, metadata)
+  select auth.uid(), 'admin.upload_limit.user', jsonb_build_object('userId', u.id, 'email', u.email, 'limit', p_limit) from auth.users u where u.id = p_user_id;
 end;
 $$;
 
@@ -110,9 +152,7 @@ begin
     if p_payload->>'kind' = 'item' and not exists (select 1 from public.menu_items where id = target and restaurant_id = p_restaurant_id and deleted_at is null) then
       raise exception 'Item not found' using errcode = 'P0002';
     end if;
-    if (select count(*) from private.menu_uploads where restaurant_id = p_restaurant_id and created_at > now() - interval '24 hours') >= private.upload_limit(p_restaurant_id) then
-      raise exception 'Daily image upload limit reached. Try again tomorrow' using errcode = '23514';
-    end if;
+    perform private.assert_upload_quota();
     insert into private.menu_uploads(restaurant_id, actor_id, kind, item_id) values(p_restaurant_id, auth.uid(), p_payload->>'kind', target) returning * into upload;
     return jsonb_build_object('slug', restaurant.slug, 'previousSlug', restaurant.slug, 'uploadId', upload.id,
       'publicId', 'qrmenu/' || p_restaurant_id::text || '/' || upload.id::text);
@@ -231,7 +271,9 @@ begin
 end;
 $$;
 
-revoke all on function public.admin_set_upload_limit(uuid, integer), public.admin_get_upload_limit(uuid), public.find_reusable_asset(uuid, text),
+revoke all on function public.admin_get_upload_settings(), public.admin_set_default_upload_limit(integer),
+  public.admin_get_user_upload_limit(uuid), public.admin_set_user_upload_limit(uuid, integer), public.find_reusable_asset(uuid, text),
   public.list_photo_options(uuid, uuid), public.list_shared_asset_ids(uuid[]) from public, anon, authenticated;
 revoke all on function public.list_unreferenced_uploads(integer), public.mark_uploads_discarded(uuid[]), public.purge_account(uuid) from public, anon, authenticated;
-grant execute on function public.admin_set_upload_limit(uuid, integer), public.admin_get_upload_limit(uuid), public.find_reusable_asset(uuid, text), public.list_photo_options(uuid, uuid) to authenticated;
+grant execute on function public.admin_get_upload_settings(), public.admin_set_default_upload_limit(integer),
+  public.admin_get_user_upload_limit(uuid), public.admin_set_user_upload_limit(uuid, integer), public.find_reusable_asset(uuid, text), public.list_photo_options(uuid, uuid) to authenticated;

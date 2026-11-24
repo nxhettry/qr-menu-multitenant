@@ -50,8 +50,11 @@ export const adminRestaurantDetailSchema = z.object({
 });
 export type AdminRestaurantDetail = z.infer<typeof adminRestaurantDetailSchema>;
 
-export const uploadLimitSchema = z.object({ limit: count, overridden: z.boolean(), usedToday: count });
-export type UploadLimit = z.infer<typeof uploadLimitSchema>;
+export const UPLOAD_LIMIT_MAX = 1000;
+export const uploadLimitInput = z.number().int().min(1).max(UPLOAD_LIMIT_MAX);
+export const uploadSettingsSchema = z.object({ weeklyLimit: count });
+export const userUploadLimitSchema = z.object({ limit: count, defaultLimit: count, overridden: z.boolean(), usedThisWeek: count });
+export type UserUploadLimit = z.infer<typeof userUploadLimitSchema>;
 
 export const adminEventSchema = z.object({
   id: z.uuid(), action: z.string(), createdAt: timestamp, metadata: z.record(z.string(), z.unknown()),
