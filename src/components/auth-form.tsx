@@ -16,17 +16,19 @@ const modes = {
   reset: { title: "Choose a new password.", description: "Use at least eight characters to protect your account.", button: "Save password", action: resetPassword },
   admin: { title: "Platform admin.", description: "Sign in with a super-admin account.", button: "Sign in", action: adminLogin },
 };
-export function AuthForm({ mode, confirmationError = false }: { mode: keyof typeof modes; confirmationError?: boolean }) {
+export function AuthForm({ mode, confirmationError = false, next }: { mode: keyof typeof modes; confirmationError?: boolean; next?: string }) {
   const config = modes[mode];
   const [state, action, pending] = useActionState<FormState, FormData>(config.action, {});
   const captcha = useTurnstile(state);
   const needsCaptcha = mode !== "reset";
+  const carry = next ? `?${new URLSearchParams({ next })}` : "";
   const footer = mode === "admin" ? undefined : mode === "login"
-    ? <div className="flex flex-wrap justify-between gap-4"><span className="text-ink-muted">New here? <Link href="/register" className={linkClass}>Create an account</Link></span><Link href="/forgot-password" className={linkClass}>Forgot password?</Link></div>
-    : <p className="text-center text-ink-muted">{mode === "register" ? "Already have an account? " : ""}<Link href="/login" className={linkClass}>{mode === "register" ? "Sign in" : "Back to sign in"}</Link></p>;
+    ? <div className="flex flex-wrap justify-between gap-4"><span className="text-ink-muted">New here? <Link href={`/register${carry}`} className={linkClass}>Create an account</Link></span><Link href="/forgot-password" className={linkClass}>Forgot password?</Link></div>
+    : <p className="text-center text-ink-muted">{mode === "register" ? "Already have an account? " : ""}<Link href={`/login${mode === "register" ? carry : ""}`} className={linkClass}>{mode === "register" ? "Sign in" : "Back to sign in"}</Link></p>;
   return <AuthShell eyebrow={mode === "admin" ? "Super admin" : undefined} title={config.title} description={config.description} footer={footer}>
     {confirmationError && <p role="alert" className={`${noticeClass("danger")} mt-5`}>That confirmation link could not be used. Try signing in, or request a new reset link.</p>}
     <form action={action} className="mt-7 space-y-5">
+      {next && <input type="hidden" name="next" value={next} />}
       {mode !== "reset" && <Field label="Email"><input className={inputClass} name="email" type="email" autoComplete="email" required maxLength={254} /></Field>}
       {mode !== "forgot" && <Field label="Password"><input className={inputClass} name="password" type="password" autoComplete={mode === "login" || mode === "admin" ? "current-password" : "new-password"} minLength={mode === "login" || mode === "admin" ? 1 : 8} maxLength={128} required /></Field>}
       {mode === "register" && <label className="flex items-start gap-3 text-sm leading-6 text-ink-muted"><input className={`${checkboxClass} mt-0.5`} name="acceptTerms" type="checkbox" required />

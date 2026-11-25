@@ -14,6 +14,7 @@ import { MenuDisplayForm } from "./menu-display-form";
 import { MenuWorkspace } from "./menu-workspace";
 import { ResultToast } from "./result-toast";
 import { QrPanel } from "./qr-panel";
+import { SyncBanner } from "@/components/restrofuel/sync-banner";
 
 const BulkImport = dynamic(() => import("./bulk-import").then(module => module.BulkImport), { loading: () => <p role="status" className="text-sm text-ink-muted">Loading import tools…</p> });
 
@@ -54,6 +55,7 @@ export function MenuEditor({ userId, restaurantId, initialData, canEdit, canMana
         {canManage && <button disabled={pending} className={restaurant.status === "PUBLISHED" ? darkClass : primaryClass} onClick={() => restaurant.status === "PUBLISHED" ? openUnpublish() : save({ operation: "visibility", payload: { published: true } })}>{pending ? "Saving…" : restaurant.status === "PUBLISHED" ? "Unpublish" : "Publish menu"}</button>}
       </div>
     </header>
+    <SyncBanner userId={userId} restaurantId={restaurantId} />
     {!canEdit && <p role="status" className={noticeClass("warning")}>Editing is currently locked. You can still view your saved menu.</p>}
     {restaurant.status === "PUBLISHED" && <p className="text-sm leading-6 text-ink-muted">Saved edits go live immediately. Preview your changes before sharing your menu.</p>}
     <ResultToast result={result} onDismiss={clearResult} />

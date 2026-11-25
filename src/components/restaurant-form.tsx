@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useState } from "react";
+import { useActionState, useState, type ReactNode } from "react";
 import { createRestaurant } from "@/app/onboarding/actions";
 import type { FormState } from "@/lib/auth/schemas";
 import { suggestSlug } from "@/lib/menu/slugs";
@@ -15,14 +15,19 @@ const statusText = (status: SlugStatus, host: string, slug: string) => ({
   error: ["text-ink-subtle", "We couldn’t check this address right now. You can still continue."],
 } satisfies Record<SlugStatus, [string, string]>)[status];
 
-export function RestaurantForm({ host }: { host: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(createRestaurant, {});
+type RestaurantAction = (state: FormState, form: FormData) => Promise<FormState>;
+
+export function RestaurantForm({ host, submitAction = createRestaurant, submitLabel = "Create restaurant", pendingLabel = "Creating…", children }: {
+  host: string; submitAction?: RestaurantAction; submitLabel?: string; pendingLabel?: string; children?: ReactNode;
+}) {
+  const [state, action, pending] = useActionState<FormState, FormData>(submitAction, {});
   const [name, setName] = useState("");
   const [customSlug, setCustomSlug] = useState<string | null>(null);
   const slug = customSlug ?? suggestSlug(name);
   const status = useSlugAvailability(slug);
   const [tone, message] = statusText(status, host, slug);
   return <form action={action} className="mt-7 space-y-5">
+    {children}
     <Field label="Restaurant name">
       <input className={inputClass} name="name" value={name} onChange={event => setName(event.target.value)} placeholder="Momo House" autoComplete="organization" maxLength={100} required />
     </Field>
@@ -36,6 +41,6 @@ export function RestaurantForm({ host }: { host: string }) {
       <span id="slug-help" role="status" aria-live="polite" className={`mt-2 block text-xs font-normal leading-5 ${tone}`}>{message}</span>
     </Field>
     <FormError message={state.error} />
-    <button disabled={pending || status === "taken"} className={`${primaryClass} w-full`}>{pending ? "Creating…" : "Create restaurant"}</button>
+    <button disabled={pending || status === "taken"} className={`${primaryClass} w-full`}>{pending ? pendingLabel : submitLabel}</button>
   </form>;
 }

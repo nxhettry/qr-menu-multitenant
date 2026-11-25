@@ -37,9 +37,10 @@ const safeMessages = new Set([
   "The menu changed. Refresh before reordering", "Category limit reached", "Item limit reached",
   "Weekly photo upload limit reached. Choose a library photo or try again later", "Confirm example prices before adding them to a published menu",
   "A converted price would exceed the maximum", "Photo not available", "Photo sharing can’t be changed",
+  "This RestroFuel update was already handled. Refresh the page", "No RestroFuel connection", "The menu changed. Refresh before applying",
 ]);
 
-async function callMenuRpc(context: TenantContext, management: boolean, call: (supabase: Awaited<ReturnType<typeof createClient>>) => PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>) {
+export async function callMenuRpc(context: TenantContext, management: boolean, call: (supabase: Awaited<ReturnType<typeof createClient>>) => PromiseLike<{ data: unknown; error: { code?: string; message: string } | null }>) {
   if (!can(context, management ? "restaurant:manage" : "menu:edit")) throw new MenuEditError("You don’t have permission to make this change, or editing is locked.");
   const { data, error } = await call(await createClient());
   if (error) {

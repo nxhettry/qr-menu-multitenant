@@ -10,6 +10,8 @@ export const RATE_LIMIT_POLICIES = {
   accountExport: { limit: 5, windowSeconds: 3600 },
   accountDeletion: { limit: 5, windowSeconds: 3600 },
   abuseReport: { limit: 5, windowSeconds: 3600 },
+  restrofuelConnect: { limit: 10, windowSeconds: 600 },
+  restrofuelEvent: { limit: 30, windowSeconds: 600 },
 } as const;
 
 export type RateLimitPolicy = keyof typeof RATE_LIMIT_POLICIES;

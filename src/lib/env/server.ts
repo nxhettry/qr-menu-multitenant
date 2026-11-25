@@ -17,3 +17,10 @@ export function getSupabaseSecretKey() {
     catch { return false; }
   }, "Use the Supabase secret (service role) key").parse(process.env.SUPABASE_SECRET_KEY);
 }
+
+/** 32-byte key (base64) that encrypts RestroFuel link secrets at rest. */
+export function getRestroFuelLinkKey() {
+  const key = Buffer.from(z.string().min(1, "Set RESTROFUEL_LINK_KEY").parse(process.env.RESTROFUEL_LINK_KEY), "base64");
+  if (key.length !== 32) throw new Error("RESTROFUEL_LINK_KEY must be 32 bytes, base64 encoded");
+  return key;
+}

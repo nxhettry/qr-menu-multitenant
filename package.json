@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --test scripts/test-auth.mjs scripts/test-database.mjs scripts/test-public-menu.mjs scripts/test-editor.mjs scripts/test-menu-import.mjs scripts/test-admin.mjs scripts/test-dishes.mjs scripts/test-phase5.mjs scripts/test-media-library.mjs scripts/test-photo-review.mjs scripts/test-starter-templates.mjs",
+    "test": "node --test scripts/test-auth.mjs scripts/test-database.mjs scripts/test-public-menu.mjs scripts/test-editor.mjs scripts/test-menu-import.mjs scripts/test-admin.mjs scripts/test-dishes.mjs scripts/test-phase5.mjs scripts/test-media-library.mjs scripts/test-photo-review.mjs scripts/test-starter-templates.mjs scripts/test-restrofuel.mjs",
     "check:public-menu": "node scripts/check-public-menu.mjs",
     "check:editor-browser": "node scripts/check-public-menu.mjs --browser",
     "check:services": "node scripts/check-services.mjs",

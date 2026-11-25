@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { credentialsSchema, type FormState } from "@/lib/auth/schemas";
 import { getSiteOrigin } from "@/lib/env/server";
+import { safeNextPath } from "@/lib/auth/redirect";
 import { authErrorMessage } from "@/lib/auth/errors";
 import { CAPTCHA_FAILED_MESSAGE, captchaOptions, isCaptchaError } from "@/lib/auth/captcha";
 import { TERMS_VERSION } from "@/lib/legal";
@@ -18,19 +19,20 @@ export async function login(_state: FormState, form: FormData): Promise<FormStat
   const { error } = await supabase.auth.signInWithPassword({ ...input.data, options: captchaOptions(form) });
   if (error) return { error: isCaptchaError(error) ? CAPTCHA_FAILED_MESSAGE : "Could not sign in. Check your details and verify your email." };
   revalidatePath("/dashboard", "layout");
-  redirect("/dashboard");
+  redirect(safeNextPath(String(form.get("next") ?? "")));
 }
 export async function register(_state: FormState, form: FormData): Promise<FormState> {
   const input = credentialsSchema.safeParse({ email: String(form.get("email") ?? "").trim(), password: form.get("password") });
   if (!input.success) return { error: "Enter a valid email and a password of 8–128 characters." };
   if (form.get("acceptTerms") !== "on") return { error: "Please accept the Terms of Service and Privacy Policy to continue." };
   if (!(await checkRateLimitByIp("signUp")).allowed) return { error: RATE_LIMITED_MESSAGE };
+  const next = safeNextPath(String(form.get("next") ?? ""), "/onboarding");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ ...input.data,
-    options: { ...captchaOptions(form), emailRedirectTo: `${getSiteOrigin()}/auth/callback?next=/onboarding`, data: { terms_version: TERMS_VERSION } },
+    options: { ...captchaOptions(form), emailRedirectTo: `${getSiteOrigin()}/auth/callback?${new URLSearchParams({ next })}`, data: { terms_version: TERMS_VERSION } },
   });
   if (error) return { error: authErrorMessage("register", error, "Could not create the account. Please try again shortly.") };
-  if (data.session) redirect("/onboarding");
+  if (data.session) redirect(next);
   return { message: "Check your email for the confirmation link. If you already have an account, sign in or reset your password." };
 }
 export async function requestPasswordReset(_state: FormState, form: FormData): Promise<FormState> {

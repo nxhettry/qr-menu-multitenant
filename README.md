@@ -37,6 +37,8 @@ Open confirmation/recovery links in the same browser and hostname that requested
 | `/onboarding`, `/dashboard` | Authenticated restaurant creation/list; requires the foundation migration |
 | `/dashboard/{restaurantId}` | Owner category/item/variant editing, settings, images, publishing, and restaurant switching |
 | `/dashboard/{restaurantId}/preview` | Private phone-sized preview of the saved menu |
+| `/connect/restrofuel` | Connect a RestroFuel POS restaurant (opened from RestroFuel); see [the integration](docs/RESTROFUEL-INTEGRATION.md) |
+| `/dashboard/{restaurantId}/restrofuel` | Review and apply menu changes synced from RestroFuel |
 
 The sample restaurant and prices are illustrative. All four cloud migrations are applied, and the owner reports deployed login and restaurant creation working. Public menus read the safe Supabase projection. The owner editor, publishing controls, private preview, and Cloudinary uploads are implemented in the local source. Excel/CSV import, subcategories, rich item details and menu display controls are implemented locally, with the bulk-menu cloud migration applied as `20261017070556_bulk_menu`. Deploy the updated application source to expose the new controls on the hosted site. See [bulk import and display controls](docs/BULK-IMPORT.md), [Phase 2 status](docs/PHASE-2-STATUS.md), and [Phase 3 status](docs/PHASE-3-STATUS.md). QR print/download tools and billing remain later phases.
 
