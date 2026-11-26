@@ -14,7 +14,7 @@
 
 `npm test`: **17 tests passed**, covering the SQL projection and RLS, hidden/deleted items, draft/suspended/deleted restaurants, changed prices, safe links, Cloudinary identifiers, currency precision, response validation, and accent contrast.
 
-Lint, TypeScript, the normal production build, and all existing HTTP auth/dashboard/demo regression checks passed. The local site-origin setting was corrected to `http://localhost:3000`; the deployed Vercel setting must remain `https://restrofuel-qrmenu.vercel.app`.
+Lint, TypeScript, the normal production build, and all existing HTTP auth/dashboard/demo regression checks passed. The local site-origin setting was corrected to `http://localhost:3000`; the deployed setting must be the production address, `https://restrofuel-qr.kree.com.np`.
 
 `npm run check:public-menu`: **passed**. This builds and starts the production app against a local HTTP adapter backed by the actual foundation SQL in an isolated in-memory PostgreSQL database. It checks live rendering, public-only credentials, tenant separation, warm projection-cache reuse, unavailable/missing states, QR resolution after rename, explicit historical 301 responses, and uncached outage responses.
 
